@@ -1,0 +1,355 @@
+{
+    "interactions": [
+        {
+            "request": {
+                "body": "{\"machine_id\": \"TEST-NAME\", \"image_type\": \"lime\", \"region\": \"eastus\"}",
+                "headers": {
+                    "Accept": [
+                        "*/*"
+                    ],
+                    "Accept-Encoding": [
+                        "gzip, deflate"
+                    ],
+                    "Connection": [
+                        "keep-alive"
+                    ],
+                    "Content-Length": [
+                        "85"
+                    ],
+                    "Content-Type": [
+                        "application/json"
+                    ],
+                    "User-Agent": [
+                        "python-requests/2.22.0"
+                    ]
+                },
+                "method": "POST",
+                "uri": "https://freta.azure-api.net/freta/0.0.1/get_upload_token"
+            },
+            "response": {
+                "body": {
+                    "string": "{\"image\": {\"sas_url\": \"https://contoso.com/path/file.txt?se=2019-07-22T14%3A21%3A15Z&sp=w&sv=2018-03-28&sr=b&sig=SIGNATURE\"}, \"image_id\": \"00000000-0000-0000-0000-000000000000\", \"profile\": {\"sas_url\": \"https://contoso.com/path/file.txt?se=2019-07-22T14%3A21%3A15Z&sp=w&sv=2018-03-28&sr=b&sig=SIGNATURE\"}, \"result\": true}"
+                },
+                "headers": {
+                    "Access-Control-Allow-Origin": [
+                        "https://freta.azurewebsites.net"
+                    ],
+                    "Content-Length": [
+                        "320"
+                    ],
+                    "Content-Type": [
+                        "application/json"
+                    ],
+                    "x-content-type-options": [
+                        "nosniff"
+                    ]
+                },
+                "status": {
+                    "code": 200,
+                    "message": "OK"
+                }
+            }
+        },
+        {
+            "request": {
+                "body": "{\"owner_id\": \"00000000-0000-0000-0000-000000000000-00000000-0000-0000-0000-000000000000\", \"image_id\": \"00000000-0000-0000-0000-000000000000\"}",
+                "headers": {
+                    "Accept": [
+                        "*/*"
+                    ],
+                    "Accept-Encoding": [
+                        "gzip, deflate"
+                    ],
+                    "Connection": [
+                        "keep-alive"
+                    ],
+                    "Content-Length": [
+                        "141"
+                    ],
+                    "Content-Type": [
+                        "application/json"
+                    ],
+                    "User-Agent": [
+                        "python-requests/2.22.0"
+                    ]
+                },
+                "method": "POST",
+                "uri": "https://freta.azure-api.net/freta/0.0.1/get_image"
+            },
+            "response": {
+                "body": {
+                    "string": "{\"Timestamp\": \"2020-02-02 20:02:20\", \"analysis_version\": \"0.0.0\", \"image_id\": \"00000000-0000-0000-0000-000000000000\", \"image_type\": \"lime\", \"machine_id\": \"TEST-NAME\", \"owner_id\": \"00000000-0000-0000-0000-000000000000-00000000-0000-0000-0000-000000000000\", \"region\": \"eastus\", \"state\": \"Upload started\"}"
+                },
+                "headers": {
+                    "Access-Control-Allow-Origin": [
+                        "https://freta.azurewebsites.net"
+                    ],
+                    "Content-Length": [
+                        "302"
+                    ],
+                    "Content-Type": [
+                        "application/json"
+                    ],
+                    "x-content-type-options": [
+                        "nosniff"
+                    ]
+                },
+                "status": {
+                    "code": 200,
+                    "message": "OK"
+                }
+            }
+        },
+        {
+            "request": {
+                "body": "{\"owner_id\": \"00000000-0000-0000-0000-000000000000-00000000-0000-0000-0000-000000000000\", \"image_id\": \"00000000-0000-0000-0000-000000000000\", \"name\": \"this is a test name\"}",
+                "headers": {
+                    "Accept": [
+                        "*/*"
+                    ],
+                    "Accept-Encoding": [
+                        "gzip, deflate"
+                    ],
+                    "Connection": [
+                        "keep-alive"
+                    ],
+                    "Content-Length": [
+                        "172"
+                    ],
+                    "Content-Type": [
+                        "application/json"
+                    ],
+                    "User-Agent": [
+                        "python-requests/2.22.0"
+                    ]
+                },
+                "method": "PATCH",
+                "uri": "https://freta.azure-api.net/freta/0.0.1/get_image"
+            },
+            "response": {
+                "body": {
+                    "string": "true"
+                },
+                "headers": {
+                    "Access-Control-Allow-Origin": [
+                        "https://freta.azurewebsites.net"
+                    ],
+                    "Content-Length": [
+                        "4"
+                    ],
+                    "Content-Type": [
+                        "application/json"
+                    ],
+                    "x-content-type-options": [
+                        "nosniff"
+                    ]
+                },
+                "status": {
+                    "code": 200,
+                    "message": "OK"
+                }
+            }
+        },
+        {
+            "request": {
+                "body": "{\"owner_id\": \"00000000-0000-0000-0000-000000000000-00000000-0000-0000-0000-000000000000\", \"image_id\": \"00000000-0000-0000-0000-000000000000\"}",
+                "headers": {
+                    "Accept": [
+                        "*/*"
+                    ],
+                    "Accept-Encoding": [
+                        "gzip, deflate"
+                    ],
+                    "Connection": [
+                        "keep-alive"
+                    ],
+                    "Content-Length": [
+                        "141"
+                    ],
+                    "Content-Type": [
+                        "application/json"
+                    ],
+                    "User-Agent": [
+                        "python-requests/2.22.0"
+                    ]
+                },
+                "method": "POST",
+                "uri": "https://freta.azure-api.net/freta/0.0.1/get_image"
+            },
+            "response": {
+                "body": {
+                    "string": "{\"Timestamp\": \"2020-02-02 20:02:20\", \"analysis_version\": \"0.0.0\", \"image_id\": \"00000000-0000-0000-0000-000000000000\", \"image_type\": \"lime\", \"machine_id\": \"TEST-NAME\", \"owner_id\": \"00000000-0000-0000-0000-000000000000-00000000-0000-0000-0000-000000000000\", \"region\": \"eastus\", \"state\": \"Upload started\"}"
+                },
+                "headers": {
+                    "Access-Control-Allow-Origin": [
+                        "https://freta.azurewebsites.net"
+                    ],
+                    "Content-Length": [
+                        "302"
+                    ],
+                    "Content-Type": [
+                        "application/json"
+                    ],
+                    "x-content-type-options": [
+                        "nosniff"
+                    ]
+                },
+                "status": {
+                    "code": 200,
+                    "message": "OK"
+                }
+            }
+        },
+        {
+            "request": {
+                "body": "{\"owner_id\": \"00000000-0000-0000-0000-000000000000-00000000-0000-0000-0000-000000000000\", \"image_id\": \"00000000-0000-0000-0000-000000000000\"}",
+                "headers": {
+                    "Accept": [
+                        "*/*"
+                    ],
+                    "Accept-Encoding": [
+                        "gzip, deflate"
+                    ],
+                    "Connection": [
+                        "keep-alive"
+                    ],
+                    "Content-Length": [
+                        "141"
+                    ],
+                    "Content-Type": [
+                        "application/json"
+                    ],
+                    "User-Agent": [
+                        "python-requests/2.22.0"
+                    ]
+                },
+                "method": "POST",
+                "uri": "https://freta.azure-api.net/freta/0.0.1/analyze"
+            },
+            "response": {
+                "body": {
+                    "string": "true"
+                },
+                "headers": {
+                    "Access-Control-Allow-Origin": [
+                        "https://freta.azurewebsites.net"
+                    ],
+                    "Content-Length": [
+                        "4"
+                    ],
+                    "Content-Type": [
+                        "application/json"
+                    ],
+                    "x-content-type-options": [
+                        "nosniff"
+                    ]
+                },
+                "status": {
+                    "code": 200,
+                    "message": "OK"
+                }
+            }
+        },
+        {
+            "request": {
+                "body": "{\"owner_id\": \"00000000-0000-0000-0000-000000000000-00000000-0000-0000-0000-000000000000\", \"image_id\": \"00000000-0000-0000-0000-000000000000\"}",
+                "headers": {
+                    "Accept": [
+                        "*/*"
+                    ],
+                    "Accept-Encoding": [
+                        "gzip, deflate"
+                    ],
+                    "Connection": [
+                        "keep-alive"
+                    ],
+                    "Content-Length": [
+                        "141"
+                    ],
+                    "Content-Type": [
+                        "application/json"
+                    ],
+                    "User-Agent": [
+                        "python-requests/2.22.0"
+                    ]
+                },
+                "method": "POST",
+                "uri": "https://freta.azure-api.net/freta/0.0.1/get_image"
+            },
+            "response": {
+                "body": {
+                    "string": "{\"Timestamp\": \"2020-02-02 20:02:20\", \"analysis_version\": \"0.0.0\", \"image_id\": \"00000000-0000-0000-0000-000000000000\", \"image_type\": \"lime\", \"machine_id\": \"TEST-NAME\", \"owner_id\": \"00000000-0000-0000-0000-000000000000-00000000-0000-0000-0000-000000000000\", \"region\": \"eastus\", \"state\": \"Adding to queue\"}"
+                },
+                "headers": {
+                    "Access-Control-Allow-Origin": [
+                        "https://freta.azurewebsites.net"
+                    ],
+                    "Content-Length": [
+                        "303"
+                    ],
+                    "Content-Type": [
+                        "application/json"
+                    ],
+                    "x-content-type-options": [
+                        "nosniff"
+                    ]
+                },
+                "status": {
+                    "code": 200,
+                    "message": "OK"
+                }
+            }
+        },
+        {
+            "request": {
+                "body": "{\"owner_id\": \"00000000-0000-0000-0000-000000000000-00000000-0000-0000-0000-000000000000\", \"image_id\": \"00000000-0000-0000-0000-000000000000\"}",
+                "headers": {
+                    "Accept": [
+                        "*/*"
+                    ],
+                    "Accept-Encoding": [
+                        "gzip, deflate"
+                    ],
+                    "Connection": [
+                        "keep-alive"
+                    ],
+                    "Content-Length": [
+                        "141"
+                    ],
+                    "Content-Type": [
+                        "application/json"
+                    ],
+                    "User-Agent": [
+                        "python-requests/2.22.0"
+                    ]
+                },
+                "method": "POST",
+                "uri": "https://freta.azure-api.net/freta/0.0.1/delete_image"
+            },
+            "response": {
+                "body": {
+                    "string": "true"
+                },
+                "headers": {
+                    "Access-Control-Allow-Origin": [
+                        "https://freta.azurewebsites.net"
+                    ],
+                    "Content-Length": [
+                        "4"
+                    ],
+                    "Content-Type": [
+                        "application/json"
+                    ],
+                    "x-content-type-options": [
+                        "nosniff"
+                    ]
+                },
+                "status": {
+                    "code": 200,
+                    "message": "OK"
+                }
+            }
+        }
+    ],
+    "version": 1
+}

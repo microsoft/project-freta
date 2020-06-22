@@ -1,0 +1,49 @@
+{
+    "interactions": [
+        {
+            "request": {
+                "body": null,
+                "headers": {
+                    "Accept": [
+                        "*/*"
+                    ],
+                    "Accept-Encoding": [
+                        "gzip, deflate"
+                    ],
+                    "Connection": [
+                        "keep-alive"
+                    ],
+                    "User-Agent": [
+                        "python-requests/2.22.0"
+                    ]
+                },
+                "method": "GET",
+                "uri": "https://freta.azure-api.net/freta/0.0.1/search_filters"
+            },
+            "response": {
+                "body": {
+                    "string": "[\"my_images\", \"my_images_and_samples\"]"
+                },
+                "headers": {
+                    "Access-Control-Allow-Origin": [
+                        "https://freta.azurewebsites.net"
+                    ],
+                    "Content-Length": [
+                        "38"
+                    ],
+                    "Content-Type": [
+                        "application/json"
+                    ],
+                    "x-content-type-options": [
+                        "nosniff"
+                    ]
+                },
+                "status": {
+                    "code": 200,
+                    "message": "OK"
+                }
+            }
+        }
+    ],
+    "version": 1
+}

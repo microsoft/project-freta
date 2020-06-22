@@ -1,0 +1,649 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "freta",
+        "version": "0.0.1"
+    },
+    "host": "freta.azure-api.net",
+    "basePath": "/freta/0.0.1",
+    "schemes": [
+        "https"
+    ],
+    "securityDefinitions": {
+        "oauth2Project Freta": {
+            "type": "oauth2",
+            "scopes": {},
+            "flow": "accessCode",
+            "authorizationUrl": "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47/oauth2/authorize",
+            "tokenUrl": "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47/oauth2/token"
+        }
+    },
+    "security": [
+        {
+            "oauth2Project Freta": []
+        }
+    ],
+    "paths": {
+        "/analyze": {
+            "post": {
+                "description": "Analyze an image",
+                "operationId": "5c8fe61667cba5373e755068",
+                "summary": "Analyze an image",
+                "parameters": [
+                    {
+                        "name": "image",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/Image"
+                        }
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Analysis queued",
+                        "examples": {
+                            "application/json": "True"
+                        }
+                    },
+                    "450": {
+                        "description": "INVALID_REQUEST"
+                    },
+                    "451": {
+                        "description": "INVALID_PERMISSION"
+                    },
+                    "452": {
+                        "description": "MISSING_EULA_AGREEMENT"
+                    },
+                    "453": {
+                        "description": "INVALID_IMAGE"
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ]
+            }
+        },
+        "/delete_image": {
+            "post": {
+                "description": "Delete an image",
+                "operationId": "5c8fedb22cc1b8528e03970e",
+                "summary": "Delete an image",
+                "parameters": [
+                    {
+                        "name": "image",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/Image"
+                        }
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Deletion completed"
+                    },
+                    "450": {
+                        "description": "INVALID_REQUEST"
+                    },
+                    "451": {
+                        "description": "INVALID_PERMISSION"
+                    },
+                    "452": {
+                        "description": "MISSING_EULA_AGREEMENT"
+                    },
+                    "453": {
+                        "description": "INVALID_IMAGE"
+                    }
+                }
+            }
+        },
+        "/regions": {
+            "get": {
+                "description": "regions",
+                "operationId": "5c9009669da88e9031e6ed54",
+                "summary": "regions",
+                "responses": {
+                    "200": {
+                        "description": "List of currently supported regions",
+                        "examples": {
+                            "application/json": "[{'australiaeast': {'default': False, 'name': 'Australia East'}, 'australiasoutheast': {'default': False, 'name': 'Australia Southeast'}]"
+                        }
+                    },
+                    "450": {
+                        "description": "INVALID_REQUEST"
+                    },
+                    "451": {
+                        "description": "INVALID_PERMISSION"
+                    },
+                    "452": {
+                        "description": "MISSING_EULA_AGREEMENT"
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ]
+            }
+        },
+        "/image_formats": {
+            "get": {
+                "description": "Get image formats",
+                "operationId": "5c900985592709ed54d0384d",
+                "summary": "Get image formats",
+                "responses": {
+                    "200": {
+                        "description": "List of supported image formats",
+                        "examples": {
+                            "application/json": {
+                                "lime": "LiME image",
+                                "vmrs": "Hyper-V Memory Snapshot"
+                            }
+                        }
+                    },
+                    "450": {
+                        "description": "INVALID_REQUEST"
+                    },
+                    "451": {
+                        "description": "INVALID_PERMISSION"
+                    },
+                    "452": {
+                        "description": "MISSING_EULA_AGREEMENT"
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ]
+            }
+        },
+        "/get_upload_token": {
+            "post": {
+                "description": "Generate Upload Token",
+                "operationId": "5c90f2f789c74f7e9fb675a8",
+                "summary": "Generate Upload Token",
+                "parameters": [
+                    {
+                        "name": "newImage",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/NewImage"
+                        }
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SAS tokens for uploading an image and kernel profile",
+                        "examples": {
+                            "application/json": {
+                                "result": true,
+                                "entry_id": "5d952f5a-77dc-4a23-8f44-b8e74d5e6526",
+                                "image": "https://example.com/full-sas-token",
+                                "profile": "https://example.com/full-sas-token"
+                            }
+                        }
+                    },
+                    "450": {
+                        "description": "INVALID_REQUEST"
+                    },
+                    "451": {
+                        "description": "INVALID_PERMISSION"
+                    },
+                    "452": {
+                        "description": "MISSING_EULA_AGREEMENT"
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ]
+            }
+        },
+        "/get_artifact": {
+            "post": {
+                "description": "Get Artifact URL",
+                "operationId": "5ca61b631a1da001052c91b3",
+                "summary": "Get Artifact URL",
+                "parameters": [
+                    {
+                        "name": "imageArtifact",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/ImageArtifact"
+                        }
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "URL to the artifact",
+                        "examples": {
+                            "application/json": {
+                                "url": "https://example.com/report.json"
+                            }
+                        }
+                    },
+                    "450": {
+                        "description": "INVALID_REQUEST"
+                    },
+                    "451": {
+                        "description": "INVALID_PERMISSION"
+                    },
+                    "452": {
+                        "description": "MISSING_EULA_AGREEMENT"
+                    },
+                    "453": {
+                        "description": "INVALID_IMAGE"
+                    },
+                    "454": {
+                        "description": "ANALYSIS_NOT_COMPLETE"
+                    },
+                    "455": {
+                        "description": "INVALID_ARTIFACT"
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ]
+            }
+        },
+        "/get_image": {
+            "patch": {
+                "description": "Update image settings",
+                "operationId": "5ca78127daf0c17898067238",
+                "summary": "Update image settings",
+                "parameters": [
+                    {
+                        "name": "imageUpdate",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/ImageUpdate"
+                        }
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Update successful",
+                        "examples": {
+                            "application/json": "True"
+                        }
+                    },
+                    "450": {
+                        "description": "INVALID_REQUEST"
+                    },
+                    "451": {
+                        "description": "INVALID_PERMISSION"
+                    },
+                    "452": {
+                        "description": "MISSING_EULA_AGREEMENT"
+                    },
+                    "453": {
+                        "description": "INVALID_IMAGE"
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ]
+            },
+            "post": {
+                "description": "Get Image details",
+                "operationId": "5cc37d7f91f680ac1998be38",
+                "summary": "Get Image details",
+                "parameters": [
+                    {
+                        "name": "image",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/Image"
+                        }
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Analysis queued",
+                        "examples": {
+                            "application/json": "True"
+                        }
+                    },
+                    "450": {
+                        "description": "INVALID_REQUEST"
+                    },
+                    "451": {
+                        "description": "INVALID_PERMISSION"
+                    },
+                    "452": {
+                        "description": "MISSING_EULA_AGREEMENT"
+                    },
+                    "453": {
+                        "description": "INVALID_IMAGE"
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ]
+            }
+        },
+        "/list_images": {
+            "post": {
+                "description": "List Images",
+                "operationId": "5ca782c5213e4beda5936d75",
+                "summary": "List Images",
+                "parameters": [
+                    {
+                        "name": "searchFilter",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/SearchFilter"
+                        }
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of images",
+                        "examples": {
+                            "application/json": "[{\n        \"Timestamp\": \"2019-04-16 21:43:31\",\n        \"image_id\": \"11111111-1111-1111-1111-111111111111\",\n        \"image_type\": \"lime\",\n        \"machine_id\": \"my machine id\",\n        \"owner_id\": \"00000000-0000-0000-0000-000000000000\",\n       \n        \"region\": \"eastus\",\n        \"state\": \"Upload Started\"\n    }]"
+                        }
+                    },
+                    "450": {
+                        "description": "INVALID_REQUEST"
+                    },
+                    "451": {
+                        "description": "INVALID_PERMISSION"
+                    },
+                    "452": {
+                        "description": "MISSING_EULA_AGREEMENT"
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ]
+            }
+        },
+        "/search_filters": {
+            "get": {
+                "description": "List search filters",
+                "operationId": "5cfac241471c1ed50967a602",
+                "summary": "List search filters",
+                "responses": {
+                    "200": {
+                        "description": "List of available search filter",
+                        "examples": {
+                            "application/json": "[\"my_images\", \"my_images_and_samples\"]"
+                        }
+                    },
+                    "450": {
+                        "description": "INVALID_REQUEST"
+                    },
+                    "451": {
+                        "description": "INVALID_PERMISSION"
+                    },
+                    "452": {
+                        "description": "MISSING_EULA_AGREEMENT"
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ]
+            }
+        },
+        "/versions": {
+            "get": {
+                "description": "Get current versions",
+                "operationId": "5cfd57ac444b2041bbce899f",
+                "summary": "Get current versions",
+                "responses": {
+                    "200": {
+                        "description": "Dictionary of components",
+                        "examples": {
+                            "application/json": {
+                                "analysis": "0.0.1"
+                            }
+                        }
+                    },
+                    "450": {
+                        "description": "INVALID_REQUEST"
+                    },
+                    "451": {
+                        "description": "INVALID_PERMISSION"
+                    },
+                    "452": {
+                        "description": "MISSING_EULA_AGREEMENT"
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ]
+            }
+        },
+        "/user_prefs": {
+            "get": {
+                "description": "Get User Preferences",
+                "operationId": "5d12363d1e30d5f3eb5d0ee2",
+                "summary": "Get User Preferences",
+                "responses": {
+                    "200": {
+                        "description": "List of current user's preferences",
+                        "examples": {
+                            "application/json": "[{\"Timestamp\": \"2019-06-26 20:22:16\", \"key\": \"PREF_NAME\", \"value\": \"PREF_VALUE\"}]"
+                        }
+                    },
+                    "450": {
+                        "description": "INVALID_REQUEST"
+                    },
+                    "451": {
+                        "description": "INVALID_PERMISSION"
+                    },
+                    "452": {
+                        "description": "MISSING_EULA_AGREEMENT"
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ]
+            },
+            "post": {
+                "description": "Update User Preferences",
+                "operationId": "5d14aeab44eec74ac5b54906",
+                "summary": "Update User Preferences",
+                "parameters": [
+                    {
+                        "name": "preference",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/Preference"
+                        }
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of current user's preferences",
+                        "examples": {
+                            "application/json": "[{\"Timestamp\": \"2019-06-26 20:22:16\", \"key\": \"PREF_NAME\", \"value\": \"NEW_PREF_VALUE\"}]"
+                        }
+                    },
+                    "450": {
+                        "description": "INVALID_REQUEST"
+                    },
+                    "451": {
+                        "description": "INVALID_PERMISSION"
+                    },
+                    "452": {
+                        "description": "MISSING_EULA_AGREEMENT"
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ]
+            },
+            "patch": {
+                "description": "Delete preference",
+                "operationId": "b7d52d97-6ce3-4119-80ed-abe032c2a343",
+                "summary": "Delete the specified preference for the current user",
+                "parameters": [
+                    {
+                        "name": "removePreference",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/RemovePreference"
+                        }
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of current user's preferences",
+                        "examples": {
+                            "application/json": "[{\"Timestamp\": \"2019-06-26 20:22:16\", \"key\": \"PREF_NAME\", \"value\": \"NEW_PREF_VALUE\"}]"
+                        }
+                    },
+                    "450": {
+                        "description": "INVALID_REQUEST"
+                    },
+                    "451": {
+                        "description": "INVALID_PERMISSION"
+                    },
+                    "452": {
+                        "description": "MISSING_EULA_AGREEMENT"
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ]
+            }
+        },
+        "/list_artifacts": {
+            "post": {
+                "description": "Get Artifact URL",
+                "operationId": "5d31f3e37bfdab8ddee08e3e",
+                "summary": "List Artifacts",
+                "parameters": [
+                    {
+                        "name": "imageArtifact",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/ImageArtifact"
+                        }
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "URL to the artifact",
+                        "examples": {
+                            "application/json": "[\r\n  {\"filename\": \"report.json\"},\r\n  {\"filename\": \"image.lime\"}\r\n]\r\n"
+                        }
+                    },
+                    "450": {
+                        "description": "INVALID_REQUEST"
+                    },
+                    "451": {
+                        "description": "INVALID_PERMISSION"
+                    },
+                    "452": {
+                        "description": "MISSING_EULA_AGREEMENT"
+                    },
+                    "453": {
+                        "description": "INVALID_IMAGE"
+                    },
+                    "454": {
+                        "description": "ANALYSIS_NOT_COMPLETE"
+                    },
+                    "455": {
+                        "description": "INVALID_ARTIFACT"
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ]
+            }
+        },
+        "/cancel_analysis": {
+            "post": {
+                "description": "Cancel Analysis of an Image",
+                "operationId": "5d728c81e0c9017ba731775e",
+                "summary": "Cancel Analysis of an Image",
+                "parameters": [
+                    {
+                        "name": "image",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/Image"
+                        }
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Analysis queued",
+                        "examples": {
+                            "application/json": "True"
+                        }
+                    },
+                    "450": {
+                        "description": "INVALID_REQUEST"
+                    },
+                    "451": {
+                        "description": "INVALID_PERMISSION"
+                    },
+                    "452": {
+                        "description": "MISSING_EULA_AGREEMENT"
+                    },
+                    "453": {
+                        "description": "INVALID_IMAGE"
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ]
+            }
+        }
+    },
+    "definitions": {
+        "Image": {
+            "example": "{\"owner_id\": \"00000000-0000-0000-0000-000000000000\", \"image_id\": \"11111111-1111-1111-1111-111111111111\"}"
+        },
+        "NewImage": {
+            "example": "{\"machine_id\": \"your machine identifier\", \"image_type\": \"vmrs\", \"region\": \"eastus\"}"
+        },
+        "ImageArtifact": {
+            "example": "{\"owner_id\": \"00000000-0000-0000-0000-000000000000\", \"image_id\": \"11111111-1111-1111-1111-111111111111\", \"filename\": \"report.json\"}"
+        },
+        "ImageUpdate": {
+            "example": "{\"owner_id\": \"00000000-0000-0000-0000-000000000000\", \"image_id\": \"11111111-1111-1111-1111-111111111111\", \"name\": \"my updated name\"}\n"
+        },
+        "SearchFilter": {
+            "example": "{\"search_filter\": \"only_my_images\"}"
+        },
+        "Preference": {
+            "example": "{\"PREF_NAME\": \"NEW_PREF_VALUE\"}"
+        },
+        "RemovePreference": {
+            "example": "[\"PREF_NAME_1\", \"PREF_NAME_2\"]"
+        }
+    },
+    "tags": ["project-freta"]
+}

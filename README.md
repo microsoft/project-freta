@@ -1,3 +1,88 @@
+# Project Freta
+
+## Summary
+
+The `Freta library for Python` enables access to [Project Freta](https://freta.azurewebsites.net), a service used to inspect volatile memory images.
+
+Included in this library is a utility, `freta`, which provides command line access to the [Project Freta](https://freta.azurewebsites.net) service.
+
+## Prerequisites
+
+Python 3.6 ad 3.7 are fully supported and tested.  Other versions may work, but are untested.
+
+## Installing
+To install, use `pip`
+
+```bash
+pip install .
+```
+
+## Using the Client
+
+```
+$ freta formats
+Please login
+To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code XXXXXXXX to authenticate.
+Login succeeded
+{
+    "lime": "LiME image",
+    "raw": "Raw Physical Memory Dump",
+    "vmrs": "Hyper-V Memory Snapshot"
+}
+$ freta image upload "my first image" lime eastus ./image.lime
+{
+    "image_id": "11111111-1111-1111-1111-111111111111",
+    "owner_id": "00000000-0000-0000-0000-000000000000"
+}
+$
+```
+
+## Using the API
+
+```python
+import json
+from freta import Freta
+
+freta = Freta()
+response = freta.formats():
+print(json.dumps(response, indent=4, sort_keys=True))
+response = freta.image.upload("my first image", "lime", "eastus", "./image.lime")
+print(json.dumps(response, indent=4, sort_keys=True))
+```
+
+## Local Development
+
+Development within a virtual environment is recommended
+
+    # setup virtual environment
+    python3 -m venv ~/freta-venv
+    source ~/freta-venv/bin/activate
+
+    # install dev prereqs
+    python -m pip install -r requirements-dev.txt
+    python -m pip install -e .
+
+## Testing
+
+As provided from soruce, tests are verified against pre-recorded API interactins recorded using [pyvcr](https://pypi.org/project/vcrpy/).
+
+    # Run unit tests
+    pytest
+
+To test against the live API:
+
+    # Delete recorded API sessions
+    rm tests/fixtures/*
+    
+    # Use the API to ensure you're logged in
+    freta regions
+
+    # Run unit tests
+    pytest
+
+## Versions
+
+This library follows [Semantic Versioning](http://semver.org/).
 
 # Contributing
 
