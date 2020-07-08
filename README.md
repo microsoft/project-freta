@@ -20,7 +20,7 @@ pip install .
 ## Using the Client
 
 ```
-$ freta formats
+$ freta image formats
 Please login
 To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code XXXXXXXX to authenticate.
 Login succeeded
