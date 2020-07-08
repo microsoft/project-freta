@@ -64,7 +64,7 @@ Development within a virtual environment is recommended
 
 ## Testing
 
-As provided from soruce, tests are verified against pre-recorded API interactins recorded using [pyvcr](https://pypi.org/project/vcrpy/).
+As provided from source, tests are verified against pre-recorded API interactins recorded using [pyvcr](https://pypi.org/project/vcrpy/).
 
     # Run unit tests
     pytest
