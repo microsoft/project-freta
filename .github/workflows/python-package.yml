@@ -40,5 +40,5 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: Freta python CLI/SDK whl
+        name: Freta python SDK+CLI whl
         path: dist/freta-*.whl
