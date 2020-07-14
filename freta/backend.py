@@ -16,7 +16,7 @@ import time
 import jwt
 import msal
 import requests
-from requests.utils import urlparse, urlunparse
+from requests.utils import urlparse
 from azure.storage.blob import BlockBlobService
 
 _ACCESSTOKENCACHE_UMASK = 0o077

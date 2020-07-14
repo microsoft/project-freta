@@ -1,7 +1,5 @@
 flake8
 pytest 
-pytest-azurepipelines
-pytest-cov
 sphinx
 vcrpy
 testfixtures
