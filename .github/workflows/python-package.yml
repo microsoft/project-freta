@@ -30,7 +30,7 @@ jobs:
         python -m pip install -r requirements-dev.txt
     - name: Lint & Test
       run: |
-        pytest tests/ --cov freta --cov-report html
+        pytest tests
         flake8 .
     - name: Build documentation
       run: |
