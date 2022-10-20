@@ -1,2 +1,0 @@
-include *.txt *.md
-recursive-include examples *.txt *.py

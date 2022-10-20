@@ -2,115 +2,83 @@
 
 ## Summary
 
-The `Freta library for Python` enables access to [Project Freta](https://freta.azurewebsites.net), a service used to inspect volatile memory images.
+The `Freta SDK` enables access to [Project Freta](https://freta.microsoft.com), a service used to inspect volatile memory images.
 
-Included in this library is a utility, `freta`, which provides command line access to the [Project Freta](https://freta.azurewebsites.net) service.
-
-## Prerequisites
-
-Python 3.6 ad 3.7 are fully supported and tested.  Other versions may work, but are untested.
+Included in this library is a utility, `freta`, which provides command line access to the [Project Freta](https://freta.microsoft.com) service.
 
 ## Installing
-To install, use `pip`
 
-```bash
-pip install .
+```
+cargo install freta
+```
+
+## Building
+
+The Freta client is written in [Rust](https://www.rust-lang.org/) and requires Rust 1.64.0 (stable) or newer.
+
+To build freta:
+
+```
+$ git clone https://github.com/microsoft/project-freta
+$ cd project-freta
+$ cargo build --release
+$ ./target/release/freta --version
+0.9.0
 ```
 
 ## Using the Client
 
 ```
-$ freta image formats
-Please login
-To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code XXXXXXXX to authenticate.
-Login succeeded
+$ freta info
 {
-    "lime": "LiME image",
-    "raw": "Raw Physical Memory Dump",
-    "vmrs": "Hyper-V Memory Snapshot"
+  "api_version": "0.7.2",
+  "models_version": "0.9.0",
+  "current_eula": "993C44214D3E5D0EEB92679E41FC0C4D69DA9C37EF97988FB724C7B2493695BB",
+  "formats": [
+    "vmrs",
+    "raw",
+    "lime",
+    "core",
+    "avmh"
+  ]
 }
-$ freta image upload "my first image" lime eastus ./image.lime
-{
-    "image_id": "11111111-1111-1111-1111-111111111111",
-    "owner_id": "00000000-0000-0000-0000-000000000000"
-}
-$
+$ freta images upload ~/projects/samples/centos-6-2.6.32-754.17.1.el6/OpenLogic\:CentOS\:6.10\:latest.lime
+[2022-10-20T17:37:39Z INFO  freta] uploading as image id: 78f6bdc7-31ce-4877-a67e-f7137db248bd
+206.99 MiB (25.26 MiB/s)
+$ freta images list
+[
+    {
+      "last_updated": "2022-10-20T17:38:29.7311842Z",
+      "owner_id": "72f988bf-86f1-41af-91ab-2d7cd011db47_09731d72-f8a6-463c-9efe-ca0bedfd82ae",
+      "image_id": "78f6bdc7-31ce-4877-a67e-f7137db248bd",
+      "state": "completed",
+      "format": "lime",
+      "tags": {},
+      "shareable": false
+    },    
+]
 ```
-
-## Using the API
-
-```python
-import json
-from freta import Freta
-
-freta = Freta()
-response = freta.formats():
-print(json.dumps(response, indent=4, sort_keys=True))
-response = freta.image.upload("my first image", "lime", "eastus", "./image.lime")
-print(json.dumps(response, indent=4, sort_keys=True))
-```
-
-## Local Development
-
-Development within a virtual environment is recommended
-
-    # setup virtual environment
-    python3 -m venv ~/freta-venv
-    source ~/freta-venv/bin/activate
-
-    # install dev prereqs
-    python -m pip install -r requirements-dev.txt
-    python -m pip install -e .
-
-## Testing
-
-As provided from source, tests are verified against pre-recorded API interactins recorded using [pyvcr](https://pypi.org/project/vcrpy/).
-
-    # Run unit tests
-    pytest
-
-To test against the live API:
-
-    # Delete recorded API sessions
-    rm tests/fixtures/*
-    
-    # Use the API to ensure you're logged in
-    freta regions
-
-    # Run unit tests
-    pytest
-
-## Versions
-
-This library follows [Semantic Versioning](http://semver.org/).
 
 # Contributing
 
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
+This project welcomes contributions and suggestions. Most contributions require you to
+agree to a Contributor License Agreement (CLA) declaring that you have the right to,
+and actually do, grant us the rights to use your contribution. For details, visit
+https://cla.microsoft.com.
 
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
+When you submit a pull request, a CLA-bot will automatically determine whether you need
+to provide a CLA and decorate the PR appropriately (e.g., label, comment). Simply follow the
+instructions provided by the bot. You will only need to do this once across all repositories using our CLA.
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/)
+or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
-# Legal Notices
+# Reporting Security Issues
 
-Microsoft and any contributors grant you a license to the Microsoft documentation and other content
-in this repository under the [Creative Commons Attribution 4.0 International Public License](https://creativecommons.org/licenses/by/4.0/legalcode),
-see the [LICENSE](LICENSE) file, and grant you a license to any code in the repository under the [MIT License](https://opensource.org/licenses/MIT), see the
-[LICENSE-CODE](LICENSE-CODE) file.
-
-Microsoft, Windows, Microsoft Azure and/or other Microsoft products and services referenced in the documentation
-may be either trademarks or registered trademarks of Microsoft in the United States and/or other countries.
-The licenses for this project do not grant you rights to use any Microsoft names, logos, or trademarks.
-Microsoft's general trademark guidelines can be found at http://go.microsoft.com/fwlink/?LinkID=254653.
-
-Privacy information can be found at https://privacy.microsoft.com/en-us/
-
-Microsoft and any contributors reserve all other rights, whether under their respective copyrights, patents,
-or trademarks, whether by implication, estoppel or otherwise.
+Security issues and bugs should be reported privately, via email, to the Microsoft Security
+Response Center (MSRC) at [secure@microsoft.com](mailto:secure@microsoft.com). You should
+receive a response within 24 hours. If for some reason you do not, please follow up via
+email to ensure we received your original message. Further information, including the
+[MSRC PGP](https://technet.microsoft.com/en-us/security/dn606155) key, can be found in
+the [Security TechCenter](https://technet.microsoft.com/en-us/security/default).

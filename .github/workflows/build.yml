@@ -1,0 +1,32 @@
+name: build
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        profile: minimal
+        override: true
+        components: rustfmt, clippy
+    - uses: Swatinem/rust-cache@v2
+    - name: build
+      run: |
+        cargo fmt -- --check
+        cargo clippy --all-targets --all-features --locked -- -D warnings -D clippy::pedantic -A clippy::missing_errors_doc
+        cargo test --release --locked
+        cargo build --release --locked
+        cargo build --examples --all-features --release --locked

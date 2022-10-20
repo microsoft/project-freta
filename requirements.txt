@@ -1,5 +1,0 @@
-azure-storage-blob~=2.0.1
-msal~=0.5.1
-pyjwt~=1.7.1
-requests~=2.22.0
-jmespath==0.9.4
