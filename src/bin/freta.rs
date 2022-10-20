@@ -14,7 +14,7 @@ use url::Url;
 pub const LICENSES: &str = include_str!("../../extra/licenses.json");
 
 #[derive(Parser)]
-#[clap(version, about)]
+#[clap(version, author, about = Some("Project Freta client"))]
 struct Args {
     #[command(subcommand)]
     subcommand: SubCommands,

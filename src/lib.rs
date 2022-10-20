@@ -1,5 +1,21 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 
+//! Freta Client
+//!
+//! This crate enables communication with the [Project Freta service](https://freta.microsoft.com).
+//!
+//! # Example
+//!
+//! ```no_run
+//! use freta::{Client, ImageFormat::Lime, Result};
+//! # #[tokio::main]
+//! # async fn main() -> Result<()> {
+//! let mut client = Client::new().await?;
+//! let image = client.images_upload(Lime, [("name", "test image")], "./image.lime").await?;
+//! println!("{:?}", image);
+//! # Ok(())
+//! # }
+
 #[cfg(feature = "client")]
 mod client;
 pub mod models;
