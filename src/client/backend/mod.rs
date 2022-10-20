@@ -16,6 +16,7 @@ use log::trace;
 use reqwest::ClientBuilder;
 use serde::{de::DeserializeOwned, Serialize};
 
+#[derive(Debug)]
 pub(crate) struct Backend {
     config: Config,
     http_client: reqwest::Client,

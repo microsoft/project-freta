@@ -15,6 +15,11 @@
 //! println!("{:?}", image);
 //! # Ok(())
 //! # }
+//!
+
+#![forbid(unsafe_code)]
+#![deny(missing_debug_implementations, nonstandard_style, future_incompatible)]
+// #![warn(missing_docs, unreachable_pub)]
 
 #[cfg(feature = "client")]
 mod client;

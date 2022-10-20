@@ -19,14 +19,14 @@ use tokio::fs;
 
 const LOCAL_DEVELOPMENT_ENDPOINT: &str = "http://localhost:7071";
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 enum TokenType {
     ClientCredentials((AccessToken, Secret)),
     DeviceCode((AccessToken, AccessToken)),
     None,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Auth {
     client_id: ClientId,
     token: TokenType,

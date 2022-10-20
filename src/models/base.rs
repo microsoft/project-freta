@@ -145,6 +145,7 @@ pub enum ImageFormat {
     Avmh,
 }
 
+#[derive(Debug)]
 pub struct ParseError {}
 
 impl FromStr for ImageFormat {

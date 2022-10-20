@@ -40,6 +40,7 @@ where
 
 const IMAGE_MONITOR_INTERVAL: Duration = Duration::from_secs(1);
 
+#[derive(Debug)]
 pub struct Client {
     backend: Backend,
 }

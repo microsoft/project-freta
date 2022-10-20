@@ -5,13 +5,13 @@ use clap::Parser;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ImageResponse(pub Image);
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ImageReanalyzeResponse(pub bool);
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ImageDeleteResponse(pub bool);
 
 #[derive(Serialize, Deserialize, Default, Debug, Parser, Clone)]
@@ -43,7 +43,7 @@ pub struct ImageList {
     pub continuation: Option<String>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ImagesListResponse {
     pub images: Vec<Image>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -93,5 +93,5 @@ impl Default for UserConfig {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct UserConfigUpdateResponse(pub bool);

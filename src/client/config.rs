@@ -9,7 +9,7 @@ use url::Url;
 
 const REDACTED: &str = "[redacted]";
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Secret(String);
 
 impl Secret {
@@ -23,7 +23,7 @@ impl Secret {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug)]
 pub struct ClientId(String);
 
 impl ClientId {
