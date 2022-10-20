@@ -1,5 +1,0 @@
-flake8
-pytest 
-sphinx
-vcrpy
-testfixtures
