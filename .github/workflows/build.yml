@@ -8,9 +8,6 @@ on:
   pull_request:
     branches: [ main ]
 
-env:
-  CARGO_TERM_COLOR: always
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -23,10 +20,4 @@ jobs:
         override: true
         components: rustfmt, clippy
     - uses: Swatinem/rust-cache@v2
-    - name: build
-      run: |
-        cargo fmt -- --check
-        cargo clippy --all-targets --all-features --locked -- -D warnings -D clippy::pedantic -A clippy::missing_errors_doc
-        cargo test --release --locked
-        cargo build --release --locked
-        cargo build --examples --all-features --release --locked
+    - run: eng/build.sh
