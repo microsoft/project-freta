@@ -5,6 +5,7 @@ use freta::{
     argparse::parse_key_val, Client, ClientId, Config, Error, ImageFormat, ImageId, ImageState,
     OwnerId, Result, Secret,
 };
+use futures::StreamExt;
 use log::info;
 use serde::ser::{SerializeSeq, Serializer};
 use std::{path::PathBuf, str::FromStr};
@@ -249,8 +250,17 @@ async fn artifacts(opts: ArtifactsCmd) -> Result<()> {
     let mut client = Client::new().await?;
     match opts.artifacts_commands {
         ArtifactsCommands::List(opts) => {
-            let res = client.artifacts_list(opts.image_id).await?;
-            println!("{:?}", res);
+            let mut stream = client.artifacts_list(opts.image_id);
+            // page through results, and build a JSON output by hand.  This is a
+            // bit of a hack, but this allows us to not have to coalesce all of
+            // the images_list calls in memory before serializing the output.
+            let mut ser = serde_json::Serializer::new(std::io::stdout());
+            let mut serializer = ser.serialize_seq(None)?;
+            while let Some(name) = stream.next().await {
+                let name = name?;
+                serializer.serialize_element(&name)?;
+            }
+            serializer.end()?;
         }
         ArtifactsCommands::Get(opts) => {
             if let Some(output) = &opts.output {
@@ -283,36 +293,26 @@ async fn images(images_opts: ImagesCmd) -> Result<()> {
             .await
             .map(print_data)?,
         ImagesCommands::List(image_list) => {
+            let mut stream = client.images_list(
+                image_list.image_id,
+                image_list.owner_id,
+                image_list.state,
+                image_list.include_samples,
+            );
+
             // page through results, and build a ImagesListResponse-like output
             // by hand.  This is a bit of a hack, but this allows us to not have
             // to coalesce all of the images_list calls in memory before
             // serializing the output.
-            println!("{{\n    \"images\":");
-            let mut ser = serde_json::Serializer::pretty(std::io::stdout());
+            print!("{{\"images\":");
+            let mut ser = serde_json::Serializer::new(std::io::stdout());
             let mut serializer = ser.serialize_seq(None)?;
-
-            let mut continuation = None;
-            loop {
-                let image_list = image_list.clone();
-                let result = client
-                    .images_list(
-                        image_list.image_id,
-                        image_list.owner_id,
-                        image_list.state,
-                        image_list.include_samples,
-                        continuation,
-                    )
-                    .await?;
-                for image in result.images {
-                    serializer.serialize_element(&image)?;
-                }
-                continuation = result.continuation;
-                if continuation.is_none() {
-                    break;
-                }
+            while let Some(image) = stream.next().await {
+                let image = image?;
+                serializer.serialize_element(&image)?;
             }
             serializer.end()?;
-            println!("\n}}");
+            println!("}}");
             Ok(())
         }
         ImagesCommands::Delete(image_delete) => client

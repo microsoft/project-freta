@@ -49,6 +49,20 @@
     "repository": "https://github.com/smol-rs/async-lock"
   },
   {
+    "name": "async-stream",
+    "version": "0.3.3",
+    "license": "MIT",
+    "license_file": null,
+    "repository": "https://github.com/tokio-rs/async-stream"
+  },
+  {
+    "name": "async-stream-impl",
+    "version": "0.3.3",
+    "license": "MIT",
+    "license_file": null,
+    "repository": "https://github.com/tokio-rs/async-stream"
+  },
+  {
     "name": "async-trait",
     "version": "0.1.57",
     "license": "Apache-2.0 OR MIT",

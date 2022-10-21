@@ -14,7 +14,7 @@ use tokio::{
 };
 use url::Url;
 
-pub async fn blob_upload<P>(filename: P, sas: Url) -> Result<()>
+pub(crate) async fn blob_upload<P>(filename: P, sas: Url) -> Result<()>
 where
     P: AsRef<Path>,
 {
@@ -73,7 +73,7 @@ where
     Ok(())
 }
 
-fn container_client(container_sas: &Url) -> Result<ContainerClient> {
+pub(crate) fn container_client(container_sas: &Url) -> Result<ContainerClient> {
     let sas: SasToken = container_sas.clone().try_into()?;
     let credentials = StorageCredentials::sas_token(sas.token)?;
     let container_client =
@@ -90,7 +90,7 @@ where
     Ok(blob_client)
 }
 
-pub async fn blob_get<N>(container_sas: &Url, name: N) -> Result<Vec<u8>>
+pub(crate) async fn blob_get<N>(container_sas: &Url, name: N) -> Result<Vec<u8>>
 where
     N: Into<String>,
 {
@@ -99,7 +99,7 @@ where
     Ok(blob)
 }
 
-pub async fn blob_download<P, N>(container_sas: &Url, name: N, filename: P) -> Result<()>
+pub(crate) async fn blob_download<P, N>(container_sas: &Url, name: N, filename: P) -> Result<()>
 where
     P: AsRef<Path>,
     N: Into<String>,
@@ -115,7 +115,6 @@ where
 
         while let Some(value) = body.next().await {
             let value = value?;
-            // .map_err(|e| anyhow!("download chunk failed: {} - {}", filename.display(), e))?;
             file.write_all(&value).await?;
         }
     }
@@ -123,25 +122,11 @@ where
     Ok(())
 }
 
-pub async fn container_list(container_sas: &Url) -> Result<Vec<String>> {
-    let container_client = container_client(container_sas)?;
-    let mut stream = container_client.list_blobs().into_stream();
-
-    let mut blobs = Vec::new();
-    while let Some(entries) = stream.next().await {
-        let entries = entries?;
-        let blob_names: Vec<_> = entries.blobs.blobs().map(|b| b.name.clone()).collect();
-        blobs.extend(blob_names);
-    }
-
-    Ok(blobs)
-}
-
 struct SasToken {
-    pub account: String,
-    pub container: String,
-    pub path: Option<String>,
-    pub token: String,
+    account: String,
+    container: String,
+    path: Option<String>,
+    token: String,
 }
 
 impl TryFrom<Url> for SasToken {
