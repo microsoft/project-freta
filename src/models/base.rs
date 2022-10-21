@@ -12,10 +12,12 @@ use time::OffsetDateTime;
 use url::Url;
 use uuid::Uuid;
 
+/// Unique identifer for an `Image`
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Eq, PartialEq)]
 pub struct ImageId(Uuid);
 
 impl ImageId {
+    /// Generate a new `ImageId`
     #[must_use]
     fn new() -> Self {
         Self(Uuid::new_v4())
@@ -43,12 +45,16 @@ impl FromStr for ImageId {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// The owner of an image
 pub struct OwnerId {
+    /// The AAD tenant of the owner
     pub tenant_id: Uuid,
+    /// The AAD `oid` of the user
     pub oid: Uuid,
 }
 
 impl OwnerId {
+    /// The `OwnerId` associated with sample images
     #[must_use]
     pub const fn samples() -> Self {
         Self {
@@ -97,20 +103,30 @@ impl<'de> serde::Deserialize<'de> for OwnerId {
     }
 }
 
+/// State of an Image
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, ValueEnum, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum ImageState {
+    /// The service has not recieved notification the upload has completed
     WaitingForUpload,
+    /// The image is ready to be queued
     ToQueue,
+    /// The image has been queued for analysis
     Queued,
+    /// The image is currently being analyzed
     Running,
+    /// The results of the analysis are being uploaded
     Finalizing,
+    /// The analysis has completed successfully
     Completed,
+    /// The analysis of the image failed
     Failed,
+    /// The image and it's related artifacts are currently being deleted
     Deleting,
 }
 
 impl ImageState {
+    /// Is the image state such that re-analyzing is possible
     #[must_use]
     pub fn can_reimage(&self) -> bool {
         match self {
@@ -123,6 +139,7 @@ impl ImageState {
         }
     }
 
+    /// Return the set of states that where re-analyzing is possible
     #[must_use]
     pub fn can_reimage_states() -> Vec<Self> {
         let mut results = vec![];
@@ -135,16 +152,23 @@ impl ImageState {
     }
 }
 
+/// Format for an Image
 #[derive(Debug, Serialize, Deserialize, PartialEq, EnumIter, ValueEnum, Clone, Eq, Copy)]
 #[serde(rename_all = "lowercase")]
 pub enum ImageFormat {
+    /// Hyper-V 'checkpoint' files
     Vmrs,
+    /// RAW memory dumps, such as created with `dd`
     Raw,
+    /// Lime memory dumps, as created with AVML or LiME
     Lime,
+    /// Full-system Linux core dumps, such as memory dumps as created by VirtualBox or Dumpit for Linux
     Core,
+    /// Internal memory snapshot feature
     Avmh,
 }
 
+/// Error converting a string into an `ImageFormat`
 #[derive(Debug)]
 pub struct ParseError {}
 
@@ -169,8 +193,10 @@ impl Display for ImageFormat {
     }
 }
 
+/// Image entry in the Freta service
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Image {
+    /// Timestamp fo the last time the image entry was updated
     #[serde(
         rename(deserialize = "Timestamp"),
         alias = "last_updated",
@@ -179,25 +205,50 @@ pub struct Image {
         with = "time::serde::rfc3339::option"
     )]
     pub last_updated: Option<OffsetDateTime>,
+
+    /// Unique identifier of the owner of the image
     #[serde(rename(deserialize = "PartitionKey"), alias = "owner_id")]
     pub owner_id: OwnerId,
+
+    /// Unique identifier of the Image
     #[serde(rename(deserialize = "RowKey"), alias = "image_id")]
     pub image_id: ImageId,
+
+    /// Current state of the image
     pub state: ImageState,
+
+    /// Format of the image
     pub format: ImageFormat,
+
+    /// Error of the last analysis
+    ///
+    /// NOTE: This is only provided if the analysis previously failed
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
+
+    /// SAS URL for downloading the image snapshot.
+    ///
+    /// NOTE: This is only provided for successfully analyzed images.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub image_url: Option<Url>,
+
+    /// SAS URL for downloading the artifacts of an image.
+    ///
+    /// NOTE: This is only provided for successfully analyzed images.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub artifacts_url: Option<Url>,
+
+    /// Key-Value pair of metadata associated with the image
     #[serde(default = "BTreeMap::new")]
     pub tags: BTreeMap<String, String>,
+
+    /// Is the image accessible by authenticated users that know the ImageId
     #[serde(default)]
     pub shareable: bool,
 }
 
 impl Image {
+    /// Create a new Image
     #[must_use]
     pub fn new(owner_id: OwnerId, format: ImageFormat, tags: BTreeMap<String, String>) -> Self {
         Self {
