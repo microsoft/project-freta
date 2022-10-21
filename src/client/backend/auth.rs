@@ -27,14 +27,14 @@ enum TokenType {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Auth {
+pub(crate) struct Auth {
     client_id: ClientId,
     token: TokenType,
     expires_on: OffsetDateTime,
 }
 
 impl Auth {
-    pub async fn new(config: &Config) -> Result<Self> {
+    pub(crate) async fn new(config: &Config) -> Result<Self> {
         if config.api_url.to_string() == LOCAL_DEVELOPMENT_ENDPOINT {
             return Ok(Self::new_without_auth());
         }
@@ -176,7 +176,7 @@ impl Auth {
         })
     }
 
-    pub async fn refresh_token(&mut self, config: &Config) -> Result<()> {
+    pub(crate) async fn refresh_token(&mut self, config: &Config) -> Result<()> {
         match &self.token {
             TokenType::ClientCredentials((_, secret)) => {
                 let token = Self::with_client_secret(config, secret).await?;
@@ -201,7 +201,7 @@ impl Auth {
         Ok(())
     }
 
-    pub async fn get_token(&mut self, config: &Config) -> Result<Option<AccessToken>> {
+    pub(crate) async fn get_token(&mut self, config: &Config) -> Result<Option<AccessToken>> {
         if self.expires_on < OffsetDateTime::now_utc() {
             self.refresh_token(config).await?;
         }
@@ -224,7 +224,7 @@ impl Auth {
         Ok(())
     }
 
-    pub async fn logout() -> Result<()> {
+    pub(crate) async fn logout() -> Result<()> {
         let path = Self::get_path()?;
         if path.exists() {
             fs::remove_file(&path).await?;

@@ -9,11 +9,16 @@ use url::Url;
 
 const REDACTED: &str = "[redacted]";
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone)]
+/// Client Secret
+///
+/// This is an opaque type that makes it such that secrets are not accidentally
+/// logged.
 pub struct Secret(String);
 
 impl Secret {
     #[must_use]
+    /// Create a new `Secret`
     pub fn new(secret: String) -> Self {
         Self(secret)
     }
@@ -23,25 +28,46 @@ impl Secret {
     }
 }
 
+impl fmt::Debug for Secret {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "<REDACTED_SECRET>")
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug)]
+/// AAD App client id
 pub struct ClientId(String);
 
 impl ClientId {
     #[must_use]
+    /// Create a new `ClientId`
     pub fn new(secret: String) -> Self {
         Self(secret)
     }
+
     pub(crate) fn as_str(&self) -> &str {
         self.0.as_ref()
     }
 }
 
 #[derive(Serialize, Deserialize)]
+/// Freta client Config
 pub struct Config {
+    /// URL for the Freta API.
+    ///
+    /// NOTE: For the public Freta service, this should always be `https://freta.microsoft.com`
     pub api_url: Url,
+
+    /// AAD app registration client id
     pub client_id: ClientId,
+
+    /// Tenant of the AAD app registration for the client
     pub tenant_id: String,
+
+    /// Client Secrt for custom app registrations to connect to Freta
     pub client_secret: Option<Secret>,
+
+    /// AAD App registration scope
     pub scope: Option<String>,
 }
 
@@ -81,6 +107,8 @@ impl Config {
         Ok(get_config_dir()?.join("cli.config"))
     }
 
+    /// Load the user's current configuration or use the default if that does
+    /// not exist
     pub async fn load_or_default() -> Result<Self> {
         if Self::get_path()?.exists() {
             Self::load().await
@@ -103,6 +131,7 @@ impl Config {
         Ok(())
     }
 
+    /// Save the user's configuration to `~/.config/freta/cli.config`
     pub async fn save(&self) -> Result<()> {
         Self::create_config_dir().await?;
         let path = Self::get_path()?;
@@ -122,7 +151,7 @@ impl Config {
     }
 }
 
-pub fn get_config_dir() -> Result<PathBuf> {
+pub(crate) fn get_config_dir() -> Result<PathBuf> {
     home_dir()
         .ok_or(Error::MissingHome)
         .map(|x| x.join(".config/freta/"))

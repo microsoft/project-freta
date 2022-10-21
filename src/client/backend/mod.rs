@@ -24,7 +24,7 @@ pub(crate) struct Backend {
 }
 
 impl Backend {
-    pub async fn new() -> Result<Self> {
+    pub(crate) async fn new() -> Result<Self> {
         let config = Config::load_or_default().await?;
 
         let http_client = ClientBuilder::new()
@@ -39,7 +39,7 @@ impl Backend {
         })
     }
 
-    pub async fn logout() -> Result<()> {
+    pub(crate) async fn logout() -> Result<()> {
         Auth::logout().await?;
         Ok(())
     }
@@ -107,7 +107,7 @@ impl Backend {
         Ok(as_json)
     }
 
-    pub async fn get_raw<Q>(&mut self, path: &str, query: Option<Q>) -> Result<Bytes>
+    pub(crate) async fn get_raw<Q>(&mut self, path: &str, query: Option<Q>) -> Result<Bytes>
     where
         Q: Serialize,
     {
@@ -115,7 +115,7 @@ impl Backend {
             .await
     }
 
-    pub async fn get<Q, R>(&mut self, path: &str, query: Option<Q>) -> Result<R>
+    pub(crate) async fn get<Q, R>(&mut self, path: &str, query: Option<Q>) -> Result<R>
     where
         Q: Serialize,
         R: DeserializeOwned,
@@ -123,7 +123,7 @@ impl Backend {
         self.execute(reqwest::Method::GET, path, query, None).await
     }
 
-    pub async fn post<Q, R>(&mut self, path: &str, body: Q) -> Result<R>
+    pub(crate) async fn post<Q, R>(&mut self, path: &str, body: Q) -> Result<R>
     where
         Q: Serialize,
         R: DeserializeOwned,
@@ -132,7 +132,7 @@ impl Backend {
             .await
     }
 
-    pub async fn delete<R>(&mut self, path: &str) -> Result<R>
+    pub(crate) async fn delete<R>(&mut self, path: &str) -> Result<R>
     where
         R: DeserializeOwned,
     {
@@ -140,7 +140,7 @@ impl Backend {
             .await
     }
 
-    pub async fn patch<Q, R>(&mut self, path: &str, body: Q) -> Result<R>
+    pub(crate) async fn patch<Q, R>(&mut self, path: &str, body: Q) -> Result<R>
     where
         Q: Serialize,
         R: DeserializeOwned,
