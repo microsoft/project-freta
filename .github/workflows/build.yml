@@ -9,7 +9,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  linux:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -21,3 +21,39 @@ jobs:
         components: rustfmt, clippy
     - uses: Swatinem/rust-cache@v2
     - run: eng/build.sh
+    - name: upload artifacts
+      uses: actions/upload-artifact@v2.3.1
+      with:
+        name: linux-artifacts
+        path: |
+          target/release/freta
+          target/release/examples/analyze-az-vm
+          target/release/examples/analyze-hyperv-vm
+  windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        profile: minimal
+        override: true
+        components: rustfmt, clippy
+    - uses: Swatinem/rust-cache@v2
+    - run: |
+         cargo fmt -- --check
+         cargo clippy --all-targets --all-features --locked -- -D warnings -D clippy::pedantic -A clippy::missing_errors_doc
+         cargo test --release --locked
+         cargo build --release --bin freta --locked
+         cargo build --examples --all-features --release --locked
+    - name: upload artifacts
+      uses: actions/upload-artifact@v2.3.1
+      with:
+        name: windows-artifacts
+        path: |
+          target/release/freta.exe
+          target/release/freta.pdb
+          target/release/examples/analyze-az-vm.exe
+          target/release/examples/analyze_az_vm.pdb
+          target/release/examples/analyze-hyperv-vm.exe
+          target/release/examples/analyze_hyperv_vm.pdb
