@@ -13,12 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        profile: minimal
-        override: true
-        components: rustfmt, clippy
+    - run: rustup update --no-self-update
     - uses: Swatinem/rust-cache@v2
     - run: eng/build.sh
     - name: upload artifacts
@@ -33,12 +28,7 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        profile: minimal
-        override: true
-        components: rustfmt, clippy
+    - run: rustup update --no-self-update
     - uses: Swatinem/rust-cache@v2
     - run: |
          cargo fmt -- --check
