@@ -252,11 +252,11 @@ impl Client {
     ///
     /// ```rust,no_run
     /// use freta::{Client, ImageFormat::Lime, ImageId, Result};
-    /// # use std::str::FromStr;
     /// use futures::StreamExt;
+    /// use std::str::FromStr;
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let image_id = ImageId::from_str("a57034e6-7dfe-4b87-a894-e864dd8c8374").unwrap();
+    /// let image_id = ImageId::from_str("a57034e6-7dfe-4b87-a894-e864dd8c8374").unwrap();
     /// let mut client = Client::new().await?;
     /// let mut stream = client.artifacts_list(image_id);
     /// while let Some(name) = stream.next().await {
@@ -291,10 +291,10 @@ impl Client {
     ///
     /// ```rust,no_run
     /// use freta::{Client, ImageFormat::Lime, Result, ImageId};
-    /// # use std::str::FromStr;
+    /// use std::str::FromStr;
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let image_id = ImageId::from_str("a57034e6-7dfe-4b87-a894-e864dd8c8374").unwrap();
+    /// let image_id = ImageId::from_str("a57034e6-7dfe-4b87-a894-e864dd8c8374").unwrap();
     /// let mut client = Client::new().await?;
     /// let report = client.artifacts_get(image_id, "report.json").await?;
     /// # Ok(())
@@ -314,10 +314,10 @@ impl Client {
     ///
     /// ```rust,no_run
     /// use freta::{Client, ImageFormat::Lime, Result, ImageId};
-    /// # use std::str::FromStr;
+    /// use std::str::FromStr;
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
-    /// # let image_id = ImageId::from_str("a57034e6-7dfe-4b87-a894-e864dd8c8374").unwrap();
+    /// let image_id = ImageId::from_str("a57034e6-7dfe-4b87-a894-e864dd8c8374").unwrap();
     /// let mut client = Client::new().await?;
     /// client.artifacts_download(image_id, "report.json", "/tmp/report.json").await?;
     /// # Ok(())
