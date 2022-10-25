@@ -29,7 +29,7 @@
   },
   {
     "name": "anyhow",
-    "version": "1.0.65",
+    "version": "1.0.66",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/dtolnay/anyhow"
@@ -64,7 +64,7 @@
   },
   {
     "name": "async-trait",
-    "version": "0.1.57",
+    "version": "0.1.58",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/dtolnay/async-trait"
@@ -106,7 +106,7 @@
   },
   {
     "name": "base64",
-    "version": "0.13.0",
+    "version": "0.13.1",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/marshallpierce/rust-base64"
@@ -127,7 +127,7 @@
   },
   {
     "name": "bumpalo",
-    "version": "3.11.0",
+    "version": "3.11.1",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/fitzgen/bumpalo"
@@ -162,14 +162,14 @@
   },
   {
     "name": "clap",
-    "version": "4.0.15",
+    "version": "4.0.18",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/clap-rs/clap"
   },
   {
     "name": "clap_derive",
-    "version": "4.0.13",
+    "version": "4.0.18",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/clap-rs/clap/tree/master/clap_derive"
@@ -225,14 +225,14 @@
   },
   {
     "name": "cxx",
-    "version": "1.0.79",
+    "version": "1.0.80",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/dtolnay/cxx"
   },
   {
     "name": "cxxbridge-macro",
-    "version": "1.0.79",
+    "version": "1.0.80",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/dtolnay/cxx"
@@ -330,35 +330,35 @@
   },
   {
     "name": "futures",
-    "version": "0.3.24",
+    "version": "0.3.25",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/rust-lang/futures-rs"
   },
   {
     "name": "futures-channel",
-    "version": "0.3.24",
+    "version": "0.3.25",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/rust-lang/futures-rs"
   },
   {
     "name": "futures-core",
-    "version": "0.3.24",
+    "version": "0.3.25",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/rust-lang/futures-rs"
   },
   {
     "name": "futures-executor",
-    "version": "0.3.24",
+    "version": "0.3.25",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/rust-lang/futures-rs"
   },
   {
     "name": "futures-io",
-    "version": "0.3.24",
+    "version": "0.3.25",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/rust-lang/futures-rs"
@@ -372,28 +372,28 @@
   },
   {
     "name": "futures-macro",
-    "version": "0.3.24",
+    "version": "0.3.25",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/rust-lang/futures-rs"
   },
   {
     "name": "futures-sink",
-    "version": "0.3.24",
+    "version": "0.3.25",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/rust-lang/futures-rs"
   },
   {
     "name": "futures-task",
-    "version": "0.3.24",
+    "version": "0.3.25",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/rust-lang/futures-rs"
   },
   {
     "name": "futures-util",
-    "version": "0.3.24",
+    "version": "0.3.25",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/rust-lang/futures-rs"
@@ -414,14 +414,14 @@
   },
   {
     "name": "getrandom",
-    "version": "0.2.7",
+    "version": "0.2.8",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/rust-random/getrandom"
   },
   {
     "name": "h2",
-    "version": "0.3.14",
+    "version": "0.3.15",
     "license": "MIT",
     "license_file": null,
     "repository": "https://github.com/hyperium/h2"
@@ -596,7 +596,7 @@
   },
   {
     "name": "libc",
-    "version": "0.2.135",
+    "version": "0.2.136",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/rust-lang/libc"
@@ -729,7 +729,7 @@
   },
   {
     "name": "openssl-sys",
-    "version": "0.9.76",
+    "version": "0.9.77",
     "license": "MIT",
     "license_file": null,
     "repository": "https://github.com/sfackler/rust-openssl"
@@ -757,7 +757,7 @@
   },
   {
     "name": "parking_lot_core",
-    "version": "0.9.3",
+    "version": "0.9.4",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/Amanieu/parking_lot"
@@ -967,7 +967,7 @@
   },
   {
     "name": "serde",
-    "version": "1.0.145",
+    "version": "1.0.147",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/serde-rs/serde"
@@ -981,14 +981,14 @@
   },
   {
     "name": "serde_derive",
-    "version": "1.0.145",
+    "version": "1.0.147",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/serde-rs/serde"
   },
   {
     "name": "serde_json",
-    "version": "1.0.86",
+    "version": "1.0.87",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/serde-rs/json"
@@ -1079,7 +1079,7 @@
   },
   {
     "name": "syn",
-    "version": "1.0.102",
+    "version": "1.0.103",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/dtolnay/syn"
@@ -1128,14 +1128,21 @@
   },
   {
     "name": "time",
-    "version": "0.3.15",
+    "version": "0.3.16",
+    "license": "Apache-2.0 OR MIT",
+    "license_file": null,
+    "repository": "https://github.com/time-rs/time"
+  },
+  {
+    "name": "time-core",
+    "version": "0.1.0",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/time-rs/time"
   },
   {
     "name": "time-macros",
-    "version": "0.2.4",
+    "version": "0.2.5",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/time-rs/time"
@@ -1393,8 +1400,29 @@
     "repository": "https://github.com/microsoft/windows-rs"
   },
   {
+    "name": "windows-sys",
+    "version": "0.42.0",
+    "license": "Apache-2.0 OR MIT",
+    "license_file": null,
+    "repository": "https://github.com/microsoft/windows-rs"
+  },
+  {
+    "name": "windows_aarch64_gnullvm",
+    "version": "0.42.0",
+    "license": "Apache-2.0 OR MIT",
+    "license_file": null,
+    "repository": "https://github.com/microsoft/windows-rs"
+  },
+  {
     "name": "windows_aarch64_msvc",
     "version": "0.36.1",
+    "license": "Apache-2.0 OR MIT",
+    "license_file": null,
+    "repository": "https://github.com/microsoft/windows-rs"
+  },
+  {
+    "name": "windows_aarch64_msvc",
+    "version": "0.42.0",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/microsoft/windows-rs"
@@ -1407,8 +1435,22 @@
     "repository": "https://github.com/microsoft/windows-rs"
   },
   {
+    "name": "windows_i686_gnu",
+    "version": "0.42.0",
+    "license": "Apache-2.0 OR MIT",
+    "license_file": null,
+    "repository": "https://github.com/microsoft/windows-rs"
+  },
+  {
     "name": "windows_i686_msvc",
     "version": "0.36.1",
+    "license": "Apache-2.0 OR MIT",
+    "license_file": null,
+    "repository": "https://github.com/microsoft/windows-rs"
+  },
+  {
+    "name": "windows_i686_msvc",
+    "version": "0.42.0",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/microsoft/windows-rs"
@@ -1421,8 +1463,29 @@
     "repository": "https://github.com/microsoft/windows-rs"
   },
   {
+    "name": "windows_x86_64_gnu",
+    "version": "0.42.0",
+    "license": "Apache-2.0 OR MIT",
+    "license_file": null,
+    "repository": "https://github.com/microsoft/windows-rs"
+  },
+  {
+    "name": "windows_x86_64_gnullvm",
+    "version": "0.42.0",
+    "license": "Apache-2.0 OR MIT",
+    "license_file": null,
+    "repository": "https://github.com/microsoft/windows-rs"
+  },
+  {
     "name": "windows_x86_64_msvc",
     "version": "0.36.1",
+    "license": "Apache-2.0 OR MIT",
+    "license_file": null,
+    "repository": "https://github.com/microsoft/windows-rs"
+  },
+  {
+    "name": "windows_x86_64_msvc",
+    "version": "0.42.0",
     "license": "Apache-2.0 OR MIT",
     "license_file": null,
     "repository": "https://github.com/microsoft/windows-rs"
