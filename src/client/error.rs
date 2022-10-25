@@ -64,6 +64,10 @@ pub enum Error {
     /// Error converting a value into a known file extension
     #[error("file extension error: {0}")]
     Extension(Cow<'static, str>),
+
+    /// Otherwise unspecified error
+    #[error("{0}: {1}")]
+    Other(&'static str, String),
 }
 
 /// Freta Result wrapper

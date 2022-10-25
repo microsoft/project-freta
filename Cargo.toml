@@ -8,6 +8,7 @@ authors = ["project-freta@microsoft.com"]
 keywords = ["memory-forensics", "security"]
 homepage = "https://github.com/microsoft/project-freta"
 repository = "https://github.com/microsoft/project-freta"
+documentation = "https://docs.rs/freta"
 
 [features]
 default = ["client"]
@@ -52,9 +53,9 @@ thiserror = {version="1.0", optional=true}
 tokio = {version="1.0", features=["full"], optional=true}
 uuid = {version="1.2", features=["serde"]}
 
-
 [dev-dependencies]
-azure_mgmt_compute = {version="0.6"}
+azure_mgmt_compute = "0.6"
+powershell_script = "1.0"
 
 [[bin]]
 name = "freta"
@@ -63,6 +64,11 @@ required-features = ["client"]
 [[example]]
 name = "analyze-az-vm"
 path = "examples/analyze-az-vm.rs"
+required-features = ["client"]
+
+[[example]]
+name = "analyze-hyperv-vm"
+path = "examples/analyze-hyperv-vm.rs"
 required-features = ["client"]
 
 [package.metadata.docs.rs]
