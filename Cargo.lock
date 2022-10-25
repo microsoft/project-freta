@@ -536,7 +536,7 @@ dependencies = [
 
 [[package]]
 name = "freta"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "async-stream",
  "azure_core",
