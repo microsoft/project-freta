@@ -6,6 +6,13 @@ The `Freta SDK` enables access to [Project Freta](https://freta.microsoft.com), 
 
 Included in this library is a utility, `freta`, which provides command line access to the [Project Freta](https://freta.microsoft.com) service.
 
+## Documentation
+
+* [Service Documentation](https://learn.microsoft.com/en-us/security/research/project-freta/) contains information on how to use the Service and details to the information exposed by the Freta analysis.
+* [CLI Reference](https://learn.microsoft.com/en-us/security/research/project-freta/api/cli-reference) contains information on how to use the Freta CLI to interact with the Freta service.
+* [Module Documentation](https://docs.rs/freta/latest) describes the APIs and data structures  to programmatically interact with the Freta service.
+* [Examples](https://github.com/microsoft/project-freta/tree/main/examples) demonstrates how to build upon the SDK to automate Freta.
+
 ## Installing
 
 ```
