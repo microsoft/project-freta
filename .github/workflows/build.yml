@@ -12,12 +12,12 @@ jobs:
   linux:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3.1.0
     - run: rustup update --no-self-update
-    - uses: Swatinem/rust-cache@v2
+    - uses: Swatinem/rust-cache@v2.0.1
     - run: eng/build.sh
     - name: upload artifacts
-      uses: actions/upload-artifact@v2.3.1
+      uses: actions/upload-artifact@v3.1.1
       with:
         name: linux-artifacts
         path: |
@@ -27,9 +27,9 @@ jobs:
   windows:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3.1.0
     - run: rustup update --no-self-update
-    - uses: Swatinem/rust-cache@v2
+    - uses: Swatinem/rust-cache@v2.0.1
     - run: |
          cargo fmt -- --check
          cargo clippy --all-targets --all-features --locked -- -D warnings -D clippy::pedantic -A clippy::missing_errors_doc
@@ -37,7 +37,7 @@ jobs:
          cargo build --release --bin freta --locked
          cargo build --examples --all-features --release --locked
     - name: upload artifacts
-      uses: actions/upload-artifact@v2.3.1
+      uses: actions/upload-artifact@v3.1.1
       with:
         name: windows-artifacts
         path: |
