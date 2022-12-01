@@ -119,6 +119,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "azure_core"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e8a13a7e5f9c8413644579bdee6731f0a7a0f722e318b3a5ea6dba5ecfd8eb64"
+dependencies = [
+ "async-trait",
+ "base64",
+ "bytes",
+ "dyn-clone",
+ "futures",
+ "getrandom 0.2.8",
+ "http-types",
+ "log",
+ "paste",
+ "pin-project",
+ "rand 0.8.5",
+ "rustc_version",
+ "serde",
+ "serde_json",
+ "time",
+ "url",
+ "uuid",
+]
+
+[[package]]
 name = "azure_identity"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -126,7 +151,7 @@ checksum = "2ca95b83d96c5e7256047670e42c5dc1ba11381869b4717c61bfa66486ad1276"
 dependencies = [
  "async-lock",
  "async-trait",
- "azure_core",
+ "azure_core 0.6.0",
  "base64",
  "fix-hidden-lifetime-bug",
  "futures",
@@ -145,7 +170,7 @@ version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "318214f0d053cb8a1e0e0516a44caf817b471d1d383c51699884f27e5f6ad6bc"
 dependencies = [
- "azure_core",
+ "azure_core 0.6.0",
  "bytes",
  "futures",
  "serde",
@@ -161,7 +186,7 @@ checksum = "8f53f36301c968007aa54f40a39cf95bb710f47b3fe2ed360fc82d8080854621"
 dependencies = [
  "RustyXML",
  "async-trait",
- "azure_core",
+ "azure_core 0.6.0",
  "base64",
  "bytes",
  "futures",
@@ -185,7 +210,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7d965285e7d3ebe8c34d921149bb2f1972ccba71ac5588cb82cfe9252a9578b5"
 dependencies = [
  "RustyXML",
- "azure_core",
+ "azure_core 0.6.0",
  "azure_storage",
  "base64",
  "bytes",
@@ -550,7 +575,7 @@ name = "freta"
 version = "0.10.1"
 dependencies = [
  "async-stream",
- "azure_core",
+ "azure_core 0.7.0",
  "azure_identity",
  "azure_mgmt_compute",
  "azure_storage",
