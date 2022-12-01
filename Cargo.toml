@@ -43,7 +43,7 @@ async-stream = {version="0.3", optional=true}
 azure_core = {version="0.6", optional=true}
 azure_identity = {version="0.7", optional=true}
 azure_storage = {version="0.7", optional=true}
-azure_storage_blobs = {version="0.7", optional=true}
+azure_storage_blobs = {version="0.8", optional=true}
 env_logger = {version="0.10", optional=true}
 home = {version="0.5", optional=true}
 indicatif = {version="0.17", optional=true}
