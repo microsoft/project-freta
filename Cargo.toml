@@ -40,10 +40,10 @@ time = "0.3"
 url = {version="2.2"}
 
 async-stream = {version="0.3", optional=true}
-azure_core = {version="0.6", optional=true}
-azure_identity = {version="0.7", optional=true}
-azure_storage = {version="0.7", optional=true}
-azure_storage_blobs = {version="0.7", optional=true}
+azure_core = {version="0.7", optional=true}
+azure_identity = {version="0.8", optional=true}
+azure_storage = {version="0.8", optional=true}
+azure_storage_blobs = {version="0.8", optional=true}
 env_logger = {version="0.10", optional=true}
 home = {version="0.5", optional=true}
 indicatif = {version="0.17", optional=true}
@@ -54,7 +54,7 @@ tokio = {version="1.22", features=["full"], optional=true}
 uuid = {version="1.2", features=["serde"]}
 
 [dev-dependencies]
-azure_mgmt_compute = "0.7"
+azure_mgmt_compute = "0.8"
 powershell_script = "1.0"
 
 [[bin]]
