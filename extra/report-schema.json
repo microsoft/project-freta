@@ -1,0 +1,2366 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Analysis",
+  "type": "object",
+  "required": [
+    "analysis_info",
+    "checks",
+    "info",
+    "initial_namespaces",
+    "interrupt_table",
+    "kernel_modules",
+    "mounts",
+    "networks",
+    "syscall_tables",
+    "tasks"
+  ],
+  "properties": {
+    "analysis_info": {
+      "$ref": "#/definitions/AnalysisInfo"
+    },
+    "block_cgroups": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/BlockCgroups"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "checks": {
+      "$ref": "#/definitions/Checks"
+    },
+    "info": {
+      "$ref": "#/definitions/Info"
+    },
+    "initial_namespaces": {
+      "$ref": "#/definitions/Namespaces"
+    },
+    "interrupt_table": {
+      "$ref": "#/definitions/IDT"
+    },
+    "kernel_modules": {
+      "$ref": "#/definitions/Modules"
+    },
+    "mounts": {
+      "$ref": "#/definitions/Mounts"
+    },
+    "networks": {
+      "$ref": "#/definitions/Networks"
+    },
+    "syscall_tables": {
+      "$ref": "#/definitions/SyscallTables"
+    },
+    "tasks": {
+      "$ref": "#/definitions/Tasks"
+    }
+  },
+  "definitions": {
+    "Address": {
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": [
+            "None"
+          ]
+        },
+        {
+          "type": "object",
+          "required": [
+            "IPV4"
+          ],
+          "properties": {
+            "IPV4": {
+              "type": "string",
+              "format": "ipv4"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "IPV6"
+          ],
+          "properties": {
+            "IPV6": {
+              "type": "string",
+              "format": "ipv6"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "AnalysisInfo": {
+      "type": "object",
+      "required": [
+        "analysis_version",
+        "symbols_version",
+        "tags"
+      ],
+      "properties": {
+        "analysis_version": {
+          "type": "string"
+        },
+        "symbols_version": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "ArpTable": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Entry"
+      }
+    },
+    "BlockCgroups": {
+      "type": "object",
+      "required": [
+        "cgroups"
+      ],
+      "properties": {
+        "cgroups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Cgroup"
+          }
+        },
+        "init_cgroup": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Cgroup"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "CallbackSymbol": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "Kernel"
+          ],
+          "properties": {
+            "Kernel": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "Module"
+          ],
+          "properties": {
+            "Module": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Cgroup": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "count": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int32"
+        },
+        "id": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int32"
+        },
+        "level": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int32"
+        },
+        "name": {
+          "type": "string"
+        },
+        "subsystem_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "CgroupNamespace": {
+      "type": "object",
+      "required": [
+        "cgroup_addr",
+        "user_namespace_addr"
+      ],
+      "properties": {
+        "cgroup_addr": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "task_count": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int32"
+        },
+        "user_namespace_addr": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        }
+      }
+    },
+    "Checks": {
+      "type": "object",
+      "required": [
+        "duplicate_credentials",
+        "duplicate_imports",
+        "file_handlers",
+        "functions",
+        "idt",
+        "netfilter_issues",
+        "syscalls",
+        "unexpected_module_notifiers",
+        "unlinked_modules"
+      ],
+      "properties": {
+        "duplicate_credentials": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DuplicateCredential"
+          }
+        },
+        "duplicate_imports": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DuplicateImport"
+          }
+        },
+        "file_handlers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FileHandler"
+          }
+        },
+        "functions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Function"
+          }
+        },
+        "idt": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/IdtEntry"
+          }
+        },
+        "netfilter_issues": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/NetfilterIssue"
+          }
+        },
+        "syscalls": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Syscall"
+          }
+        },
+        "unexpected_module_notifiers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/UnexpectedNotifier"
+          }
+        },
+        "unlinked_modules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/UnlinkedModule"
+          }
+        }
+      }
+    },
+    "Cred": {
+      "type": "object",
+      "required": [
+        "egid",
+        "euid",
+        "gid",
+        "sgid",
+        "suid",
+        "uid"
+      ],
+      "properties": {
+        "egid": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "euid": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "gid": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "sgid": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "suid": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "uid": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        }
+      }
+    },
+    "CssSet": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Cgroup"
+      }
+    },
+    "DuplicateCredential": {
+      "type": "object",
+      "required": [
+        "address",
+        "dup_pid",
+        "field",
+        "pid"
+      ],
+      "properties": {
+        "address": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "dup_pid": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "field": {
+          "type": "string"
+        },
+        "pid": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        }
+      }
+    },
+    "DuplicateImport": {
+      "type": "object",
+      "required": [
+        "paths",
+        "pid"
+      ],
+      "properties": {
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "pid": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        }
+      }
+    },
+    "Entry": {
+      "type": "object",
+      "required": [
+        "addr",
+        "id"
+      ],
+      "properties": {
+        "addr": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "id": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "implementation": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/IdtName"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "File": {
+      "type": "object",
+      "required": [
+        "fd",
+        "file_addr",
+        "offset",
+        "path"
+      ],
+      "properties": {
+        "fd": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "file_addr": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "inode": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "offset": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "path": {
+          "type": "string"
+        },
+        "size": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0.0
+        }
+      }
+    },
+    "FileHandler": {
+      "type": "object",
+      "required": [
+        "addr",
+        "area",
+        "disassembly",
+        "function",
+        "hook_type"
+      ],
+      "properties": {
+        "addr": {
+          "description": "Address of the hooked function",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "area": {
+          "type": "string"
+        },
+        "disassembly": {
+          "description": "disassembly of the hooked function",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "function": {
+          "type": "string"
+        },
+        "hook_type": {
+          "description": "type of hook",
+          "type": "string"
+        },
+        "target_addr": {
+          "description": "calculated address for the destination of the hook",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "target_disassembly": {
+          "description": "disassembly of the destination for the hooked function",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "target_module": {
+          "description": "symbol name for the destination for the hooked function if known",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "Flags": {
+      "type": "string",
+      "enum": [
+        "READ_ONLY",
+        "NO_SUID",
+        "NO_DEV",
+        "NO_EXEC",
+        "SYNCHRONOUS",
+        "REMOUNT",
+        "ALLOW_MANDITORY_LOCKS",
+        "DIR_MODS_ARE_SYNCHRONOUS",
+        "NO_ATIME",
+        "NO_DIR_ATIME",
+        "BIND",
+        "MOVE",
+        "REC",
+        "SILENT",
+        "POSIX_ACL",
+        "UNBINDABLE",
+        "PRIVATE",
+        "SLAVE",
+        "SHARED",
+        "REL_ATIME",
+        "KERN_MOUNT",
+        "I_VERSION",
+        "STRICT_ATIME",
+        "NO_SEC",
+        "BORN",
+        "ACTIVE",
+        "NO_USER",
+        "__NOT_USED"
+      ]
+    },
+    "Function": {
+      "type": "object",
+      "required": [
+        "addr",
+        "disassembly",
+        "hook_type",
+        "name"
+      ],
+      "properties": {
+        "addr": {
+          "description": "Address of the hooked function",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "disassembly": {
+          "description": "disassembly of the hooked function",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "hook_type": {
+          "description": "type of hook",
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "target_addr": {
+          "description": "calculated address for the destination of the hook",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "target_disassembly": {
+          "description": "disassembly of the destination for the hooked function",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "target_module": {
+          "description": "symbol name for the destination for the hooked function if known",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "IDT": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Entry"
+      }
+    },
+    "IdtEntry": {
+      "type": "object",
+      "required": [
+        "addr",
+        "disassembly",
+        "hook_type",
+        "id"
+      ],
+      "properties": {
+        "addr": {
+          "description": "Address of the hooked function",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "disassembly": {
+          "description": "disassembly of the hooked function",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "hook_type": {
+          "description": "type of hook",
+          "type": "string"
+        },
+        "id": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "target_addr": {
+          "description": "calculated address for the destination of the hook",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "target_disassembly": {
+          "description": "disassembly of the destination for the hooked function",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "target_module": {
+          "description": "symbol name for the destination for the hooked function if known",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "IdtName": {
+      "type": "string",
+      "enum": [
+        "divide_by_zero",
+        "non_maskable_interrupt",
+        "breakpoint",
+        "overflow",
+        "bound_range_exceeded",
+        "invalid_opcode",
+        "device_not_available",
+        "double_fault",
+        "coprocessor_segment_overrun",
+        "invalid_tss",
+        "segment_not_present",
+        "general_protection_fault",
+        "page_fault",
+        "spurious_interrupt",
+        "floating_point_exception",
+        "alignment_check",
+        "machine_check",
+        "simd_floating_point_exception",
+        "iret_exception"
+      ]
+    },
+    "Inet": {
+      "type": "object",
+      "required": [
+        "dst_addr",
+        "dst_port",
+        "ip_proto",
+        "socket_family",
+        "socket_state",
+        "socket_type",
+        "src_addr",
+        "src_port"
+      ],
+      "properties": {
+        "dst_addr": {
+          "$ref": "#/definitions/Address"
+        },
+        "dst_port": {
+          "type": "integer",
+          "format": "uint16",
+          "minimum": 0.0
+        },
+        "ip_proto": {
+          "$ref": "#/definitions/ip_proto"
+        },
+        "socket_family": {
+          "$ref": "#/definitions/sock_family"
+        },
+        "socket_state": {
+          "$ref": "#/definitions/tcp_states"
+        },
+        "socket_type": {
+          "$ref": "#/definitions/sock_types"
+        },
+        "src_addr": {
+          "$ref": "#/definitions/Address"
+        },
+        "src_port": {
+          "type": "integer",
+          "format": "uint16",
+          "minimum": 0.0
+        }
+      }
+    },
+    "Info": {
+      "type": "object",
+      "required": [
+        "banner",
+        "kernel_aslr_offset",
+        "kernel_pml4",
+        "machine",
+        "memory_info",
+        "vm_info"
+      ],
+      "properties": {
+        "banner": {
+          "type": "string"
+        },
+        "kernel_aslr_offset": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "kernel_pml4": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "machine": {
+          "$ref": "#/definitions/UtsName"
+        },
+        "memory_info": {
+          "$ref": "#/definitions/MemoryInfo"
+        },
+        "vm_info": {
+          "$ref": "#/definitions/Info"
+        }
+      }
+    },
+    "MappedFile": {
+      "type": "object",
+      "required": [
+        "exported_name",
+        "name"
+      ],
+      "properties": {
+        "exported_name": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "MemoryInfo": {
+      "type": "object",
+      "required": [
+        "swap_pages",
+        "total_swap_pages"
+      ],
+      "properties": {
+        "swap_pages": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "total_ram": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "total_swap_pages": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        }
+      }
+    },
+    "MntNamespace": {
+      "type": "object",
+      "required": [
+        "addr",
+        "path",
+        "root_addr"
+      ],
+      "properties": {
+        "addr": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "path": {
+          "type": "string"
+        },
+        "root_addr": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "user_namespace_addr": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0.0
+        }
+      }
+    },
+    "Module": {
+      "type": "object",
+      "required": [
+        "addr",
+        "core_addr",
+        "core_size",
+        "init_addr",
+        "init_size",
+        "name",
+        "source",
+        "symbols"
+      ],
+      "properties": {
+        "addr": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "args": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "core_addr": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "core_artifact_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "core_size": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "init_addr": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "init_artifact_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "init_size": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "name": {
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/definitions/ModuleSource"
+        },
+        "srcversion": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "symbols": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ModuleSymbol"
+          }
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "ModuleNotifier": {
+      "type": "object",
+      "required": [
+        "callback_address",
+        "priority"
+      ],
+      "properties": {
+        "callback_address": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "callback_name": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/CallbackSymbol"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "priority": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "ModuleSource": {
+      "type": "string",
+      "enum": [
+        "ModulesList",
+        "ModuleBugList"
+      ]
+    },
+    "ModuleSymbol": {
+      "type": "object",
+      "required": [
+        "addr",
+        "name"
+      ],
+      "properties": {
+        "addr": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "Modules": {
+      "type": "object",
+      "required": [
+        "modules",
+        "notifiers"
+      ],
+      "properties": {
+        "modules": {
+          "$ref": "#/definitions/ModulesList"
+        },
+        "modules_disabled": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int64"
+        },
+        "notifiers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ModuleNotifier"
+          }
+        }
+      }
+    },
+    "ModulesList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Module"
+      }
+    },
+    "Mount": {
+      "type": "object",
+      "required": [
+        "flags",
+        "mount_type",
+        "name",
+        "path"
+      ],
+      "properties": {
+        "flags": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Flags"
+          }
+        },
+        "mount_type": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        }
+      }
+    },
+    "Mounts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Mount"
+      }
+    },
+    "Namespaces": {
+      "type": "object",
+      "required": [
+        "addr",
+        "count"
+      ],
+      "properties": {
+        "addr": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "cgroup": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/CgroupNamespace"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "count": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "mnt": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/MntNamespace"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "net": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/NetNamespace"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pid": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/PidNamespace"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "uts": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/UtsNamespace"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "NetNamespace": {
+      "type": "object",
+      "required": [
+        "addr"
+      ],
+      "properties": {
+        "addr": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "count": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "user_namespace_addr": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0.0
+        }
+      }
+    },
+    "NetfilterHook": {
+      "type": "object",
+      "required": [
+        "addr",
+        "hook_type_id",
+        "protocol_id"
+      ],
+      "properties": {
+        "addr": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "hook_type": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/NetfilterInetHook"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "hook_type_id": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "network_id": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "protocol": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/NetfilterProtocol"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "protocol_id": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        }
+      }
+    },
+    "NetfilterHooks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/NetfilterHook"
+      }
+    },
+    "NetfilterInetHook": {
+      "type": "string",
+      "enum": [
+        "NF_INET_PRE_ROUTING",
+        "NF_INET_LOCAL_IN",
+        "NF_INET_FORWARD",
+        "NF_INET_LOCAL_OUT",
+        "NF_INET_POST_ROUTING",
+        "NF_INET_INGRESS"
+      ]
+    },
+    "NetfilterIssue": {
+      "type": "object",
+      "required": [
+        "addr",
+        "disassembly",
+        "hook_type"
+      ],
+      "properties": {
+        "addr": {
+          "description": "Address of the hooked function",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "disassembly": {
+          "description": "disassembly of the hooked function",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "hook_type": {
+          "description": "type of hook",
+          "type": "string"
+        },
+        "netfilter_type": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/NetfilterInetHook"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "network_id": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "protocol": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/NetfilterProtocol"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_addr": {
+          "description": "calculated address for the destination of the hook",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "target_disassembly": {
+          "description": "disassembly of the destination for the hooked function",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "target_module": {
+          "description": "symbol name for the destination for the hooked function if known",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "NetfilterProtocol": {
+      "type": "string",
+      "enum": [
+        "NFPROTO_UNSPEC",
+        "NFPROTO_INET",
+        "NFPROTO_IPV4",
+        "NFPROTO_ARP",
+        "NFPROTO_BRIDGE",
+        "NFPROTO_IPV6",
+        "NFPROTO_DECNET"
+      ]
+    },
+    "Networks": {
+      "type": "object",
+      "required": [
+        "arp_table",
+        "inet",
+        "netfilter_hooks",
+        "unix"
+      ],
+      "properties": {
+        "arp_table": {
+          "$ref": "#/definitions/ArpTable"
+        },
+        "inet": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Inet"
+          }
+        },
+        "netfilter_hooks": {
+          "$ref": "#/definitions/NetfilterHooks"
+        },
+        "unix": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Unix"
+          }
+        }
+      }
+    },
+    "PagetableInfo": {
+      "type": "object",
+      "required": [
+        "addr",
+        "level",
+        "nx",
+        "offset",
+        "size",
+        "used",
+        "userland",
+        "writeable"
+      ],
+      "properties": {
+        "addr": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "level": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "nx": {
+          "type": "boolean"
+        },
+        "offset": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "size": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "used": {
+          "type": "boolean"
+        },
+        "userland": {
+          "type": "boolean"
+        },
+        "writeable": {
+          "type": "boolean"
+        }
+      }
+    },
+    "PidNamespace": {
+      "type": "object",
+      "required": [
+        "addr",
+        "level"
+      ],
+      "properties": {
+        "addr": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "hide_pid": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int32"
+        },
+        "last_pid": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int32"
+        },
+        "level": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "pid_gid": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "task_reaper": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/TaskEntry"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "user_namespace_addr": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0.0
+        }
+      }
+    },
+    "ReadlineHistory": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ReadlineHistoryEntry"
+      }
+    },
+    "ReadlineHistoryEntry": {
+      "type": "object",
+      "required": [
+        "line",
+        "timestamp"
+      ],
+      "properties": {
+        "line": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "Syscall": {
+      "type": "object",
+      "required": [
+        "addr",
+        "id"
+      ],
+      "properties": {
+        "addr": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "function": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "name": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/SyscallName"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "SyscallName": {
+      "type": "string",
+      "enum": [
+        "read",
+        "write",
+        "open",
+        "close",
+        "stat",
+        "fstat",
+        "lstat",
+        "poll",
+        "lseek",
+        "mmap",
+        "mprotect",
+        "munmap",
+        "brk",
+        "rt_sigaction",
+        "rt_sigprocmask",
+        "rt_sigreturn",
+        "ioctl",
+        "pread64",
+        "pwrite64",
+        "readv",
+        "writev",
+        "access",
+        "pipe",
+        "select",
+        "sched_yield",
+        "mremap",
+        "msync",
+        "mincore",
+        "madvise",
+        "shmget",
+        "shmat",
+        "shmctl",
+        "dup",
+        "dup2",
+        "pause",
+        "nanosleep",
+        "getitimer",
+        "alarm",
+        "setitimer",
+        "getpid",
+        "sendfile",
+        "socket",
+        "connect",
+        "accept",
+        "sendto",
+        "recvfrom",
+        "sendmsg",
+        "recvmsg",
+        "shutdown",
+        "bind",
+        "listen",
+        "getsockname",
+        "getpeername",
+        "socketpair",
+        "setsockopt",
+        "getsockopt",
+        "clone",
+        "fork",
+        "vfork",
+        "execve",
+        "exit",
+        "wait4",
+        "kill",
+        "uname",
+        "semget",
+        "semop",
+        "semctl",
+        "shmdt",
+        "msgget",
+        "msgsnd",
+        "msgrcv",
+        "msgctl",
+        "fcntl",
+        "flock",
+        "fsync",
+        "fdatasync",
+        "truncate",
+        "ftruncate",
+        "getdents",
+        "getcwd",
+        "chdir",
+        "fchdir",
+        "rename",
+        "mkdir",
+        "rmdir",
+        "creat",
+        "link",
+        "unlink",
+        "symlink",
+        "readlink",
+        "chmod",
+        "fchmod",
+        "chown",
+        "fchown",
+        "lchown",
+        "umask",
+        "gettimeofday",
+        "getrlimit",
+        "getrusage",
+        "sysinfo",
+        "times",
+        "ptrace",
+        "getuid",
+        "syslog",
+        "getgid",
+        "setuid",
+        "setgid",
+        "geteuid",
+        "getegid",
+        "setpgid",
+        "getppid",
+        "getpgrp",
+        "setsid",
+        "setreuid",
+        "setregid",
+        "getgroups",
+        "setgroups",
+        "setresuid",
+        "getresuid",
+        "setresgid",
+        "getresgid",
+        "getpgid",
+        "setfsuid",
+        "setfsgid",
+        "getsid",
+        "capget",
+        "capset",
+        "rt_sigpending",
+        "rt_sigtimedwait",
+        "rt_sigqueueinfo",
+        "rt_sigsuspend",
+        "sigaltstack",
+        "utime",
+        "mknod",
+        "uselib",
+        "personality",
+        "ustat",
+        "statfs",
+        "fstatfs",
+        "sysfs",
+        "getpriority",
+        "setpriority",
+        "sched_setparam",
+        "sched_getparam",
+        "sched_setscheduler",
+        "sched_getscheduler",
+        "sched_get_priority_max",
+        "sched_get_priority_min",
+        "sched_rr_get_interval",
+        "mlock",
+        "munlock",
+        "mlockall",
+        "munlockall",
+        "vhangup",
+        "modify_ldt",
+        "pivot_root",
+        "_sysctl",
+        "prctl",
+        "arch_prctl",
+        "adjtimex",
+        "setrlimit",
+        "chroot",
+        "sync",
+        "acct",
+        "settimeofday",
+        "mount",
+        "umount2",
+        "swapon",
+        "swapoff",
+        "reboot",
+        "sethostname",
+        "setdomainname",
+        "iopl",
+        "ioperm",
+        "create_module",
+        "init_module",
+        "delete_module",
+        "get_kernel_syms",
+        "query_module",
+        "quotactl",
+        "nfsservctl",
+        "getpmsg",
+        "putpmsg",
+        "afs_syscall",
+        "tuxcall",
+        "security",
+        "gettid",
+        "readahead",
+        "setxattr",
+        "lsetxattr",
+        "fsetxattr",
+        "getxattr",
+        "lgetxattr",
+        "fgetxattr",
+        "listxattr",
+        "llistxattr",
+        "flistxattr",
+        "removexattr",
+        "lremovexattr",
+        "fremovexattr",
+        "tkill",
+        "time",
+        "futex",
+        "sched_setaffinity",
+        "sched_getaffinity",
+        "set_thread_area",
+        "io_setup",
+        "io_destroy",
+        "io_getevents",
+        "io_submit",
+        "io_cancel",
+        "get_thread_area",
+        "lookup_dcookie",
+        "epoll_create",
+        "epoll_ctl_old",
+        "epoll_wait_old",
+        "remap_file_pages",
+        "getdents64",
+        "set_tid_address",
+        "restart_syscall",
+        "semtimedop",
+        "fadvise64",
+        "timer_create",
+        "timer_settime",
+        "timer_gettime",
+        "timer_getoverrun",
+        "timer_delete",
+        "clock_settime",
+        "clock_gettime",
+        "clock_getres",
+        "clock_nanosleep",
+        "exit_group",
+        "epoll_wait",
+        "epoll_ctl",
+        "tgkill",
+        "utimes",
+        "vserver",
+        "mbind",
+        "set_mempolicy",
+        "get_mempolicy",
+        "mq_open",
+        "mq_unlink",
+        "mq_timedsend",
+        "mq_timedreceive",
+        "mq_notify",
+        "mq_getsetattr",
+        "kexec_load",
+        "waitid",
+        "add_key",
+        "request_key",
+        "keyctl",
+        "ioprio_set",
+        "ioprio_get",
+        "inotify_init",
+        "inotify_add_watch",
+        "inotify_rm_watch",
+        "migrate_pages",
+        "openat",
+        "mkdirat",
+        "mknodat",
+        "fchownat",
+        "futimesat",
+        "newfstatat",
+        "unlinkat",
+        "renameat",
+        "linkat",
+        "symlinkat",
+        "readlinkat",
+        "fchmodat",
+        "faccessat",
+        "pselect6",
+        "ppoll",
+        "unshare",
+        "set_robust_list",
+        "get_robust_list",
+        "splice",
+        "tee",
+        "sync_file_range",
+        "vmsplice",
+        "move_pages",
+        "utimensat",
+        "epoll_pwait",
+        "signalfd",
+        "timerfd_create",
+        "eventfd",
+        "fallocate",
+        "timerfd_settime",
+        "timerfd_gettime",
+        "accept4",
+        "signalfd4",
+        "eventfd2",
+        "epoll_create1",
+        "dup3",
+        "pipe2",
+        "inotify_init1",
+        "preadv",
+        "pwritev",
+        "rt_tgsigqueueinfo",
+        "perf_event_open",
+        "recvmmsg",
+        "fanotify_init",
+        "fanotify_mark",
+        "prlimit64",
+        "name_to_handle_at",
+        "open_by_handle_at",
+        "clock_adjtime",
+        "syncfs",
+        "sendmmsg",
+        "setns",
+        "getcpu",
+        "process_vm_readv",
+        "process_vm_writev",
+        "kcmp",
+        "finit_module",
+        "sched_setattr",
+        "sched_getattr",
+        "renameat2",
+        "seccomp",
+        "getrandom",
+        "memfd_create",
+        "kexec_file_load",
+        "bpf",
+        "execveat",
+        "userfaultfd",
+        "membarrier",
+        "mlock2",
+        "copy_file_range",
+        "preadv2",
+        "pwritev2",
+        "pkey_mprotect",
+        "pkey_alloc",
+        "pkey_free",
+        "statx",
+        "io_pgetevents",
+        "rseq",
+        "pidfd_send_signal",
+        "io_uring_setup",
+        "io_uring_enter",
+        "io_uring_register",
+        "open_tree",
+        "move_mount",
+        "fsopen",
+        "fsconfig",
+        "fsmount",
+        "fspick",
+        "pidfd_open",
+        "clone3"
+      ]
+    },
+    "SyscallTables": {
+      "type": "object",
+      "required": [
+        "ia32_sys_call_table",
+        "sys_call_table"
+      ],
+      "properties": {
+        "ia32_sys_call_table": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Syscall"
+          }
+        },
+        "sys_call_table": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Syscall"
+          }
+        }
+      }
+    },
+    "Task": {
+      "type": "object",
+      "required": [
+        "addr",
+        "arg",
+        "comm",
+        "cred",
+        "cwd",
+        "env",
+        "files",
+        "inet_sockets",
+        "mapped_files",
+        "max_fds",
+        "pagetables",
+        "pgd",
+        "pid",
+        "ppid",
+        "ptrace",
+        "real_ppid",
+        "start_time",
+        "stime",
+        "tgid",
+        "unix_sockets",
+        "utime"
+      ],
+      "properties": {
+        "addr": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "arg": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "comm": {
+          "type": "string"
+        },
+        "cred": {
+          "$ref": "#/definitions/Cred"
+        },
+        "cred_addr": {
+          "writeOnly": true,
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "css_set": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/CssSet"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cwd": {
+          "type": "string"
+        },
+        "env": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/File"
+          }
+        },
+        "inet_sockets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Inet"
+          }
+        },
+        "mapped_files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MappedFile"
+          }
+        },
+        "max_fds": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "namespaces": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Namespaces"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pagetables": {
+          "writeOnly": true,
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PagetableInfo"
+          }
+        },
+        "pgd": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "pid": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "ppid": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "ptrace": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "readline_history": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ReadlineHistory"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "real_cred_addr": {
+          "writeOnly": true,
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "real_ppid": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "real_start_time": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "schedule_stats": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "integer",
+            "format": "uint64",
+            "minimum": 0.0
+          }
+        },
+        "start_time": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "stime": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "tgid": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "unix_sockets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Unix"
+          }
+        },
+        "utime": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        }
+      }
+    },
+    "TaskEntry": {
+      "type": "object",
+      "required": [
+        "comm",
+        "pid"
+      ],
+      "properties": {
+        "comm": {
+          "type": "string"
+        },
+        "pid": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        }
+      }
+    },
+    "Tasks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Task"
+      }
+    },
+    "UnexpectedNotifier": {
+      "type": "object",
+      "required": [
+        "callback_addr",
+        "priority"
+      ],
+      "properties": {
+        "callback_addr": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "callback_name": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/CallbackSymbol"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "priority": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "Unix": {
+      "type": "object",
+      "required": [
+        "inode",
+        "reference_count",
+        "socket_state",
+        "socket_type"
+      ],
+      "properties": {
+        "inode": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reference_count": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "socket_state": {
+          "$ref": "#/definitions/tcp_states"
+        },
+        "socket_type": {
+          "$ref": "#/definitions/sock_types"
+        }
+      }
+    },
+    "UnlinkedModule": {
+      "type": "object",
+      "required": [
+        "core_addr",
+        "core_size",
+        "init_addr",
+        "init_size",
+        "name",
+        "source"
+      ],
+      "properties": {
+        "core_addr": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "core_artifact_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "core_size": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "init_addr": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "init_artifact_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "init_size": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "name": {
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/definitions/ModuleSource"
+        }
+      }
+    },
+    "UtsName": {
+      "type": "object",
+      "required": [
+        "domainname",
+        "machine",
+        "nodename",
+        "release",
+        "sysname",
+        "version"
+      ],
+      "properties": {
+        "domainname": {
+          "type": "string"
+        },
+        "machine": {
+          "type": "string"
+        },
+        "nodename": {
+          "type": "string"
+        },
+        "release": {
+          "type": "string"
+        },
+        "sysname": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "UtsNamespace": {
+      "type": "object",
+      "required": [
+        "uts_name"
+      ],
+      "properties": {
+        "group": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "owner": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "user_namespace_addr": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "uts_name": {
+          "$ref": "#/definitions/UtsName"
+        }
+      }
+    },
+    "ip_proto": {
+      "type": "string",
+      "enum": [
+        "LX_IPPROTO_IP",
+        "LX_IPPROTO_ICMP",
+        "LX_IPPROTO_TCP",
+        "LX_IPPROTO_UDP",
+        "LX_IPPROTO_ICMPV6",
+        "LX_IPPROTO_RAW"
+      ]
+    },
+    "sock_family": {
+      "type": "string",
+      "enum": [
+        "LX_AF_UNSPEC",
+        "LX_AF_UNIX",
+        "LX_AF_INET",
+        "LX_AF_INET6",
+        "LX_AF_NETLINK"
+      ]
+    },
+    "sock_types": {
+      "type": "string",
+      "enum": [
+        "LX_SOCK_STREAM",
+        "LX_SOCK_DGRAM",
+        "LX_SOCK_RAW",
+        "LX_SOCK_RDM",
+        "LX_SOCK_SEQPACKET"
+      ]
+    },
+    "tcp_states": {
+      "type": "string",
+      "enum": [
+        "ESTABLISHED",
+        "SYN_SENT",
+        "SYN_RECV",
+        "FIN_WAIT1",
+        "FIN_WAIT2",
+        "TIME_WAIT",
+        "CLOSE",
+        "CLOSE_WAIT",
+        "LAST_ACK",
+        "LISTEN",
+        "CLOSING",
+        "NEW_SYN_RECV"
+      ]
+    }
+  }
+}
