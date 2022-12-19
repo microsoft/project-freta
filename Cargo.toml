@@ -40,7 +40,7 @@ time = "0.3"
 url = {version="2.2"}
 
 async-stream = {version="0.3", optional=true}
-azure_core = {version="0.7", optional=true}
+azure_core = {version="0.8", optional=true}
 azure_identity = {version="0.8", optional=true}
 azure_storage = {version="0.8", optional=true}
 azure_storage_blobs = {version="0.8", optional=true}
