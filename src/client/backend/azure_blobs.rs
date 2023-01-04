@@ -1,7 +1,6 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 
-use crate::client::error::{Error, Result};
-use azure_storage::prelude::*;
+use crate::client::error::Result;
 use azure_storage_blobs::prelude::*;
 use bytes::Bytes;
 use futures::stream::StreamExt;
@@ -14,6 +13,7 @@ use tokio::{
 };
 use url::Url;
 
+/// Upload a file to Azure Blob Storage
 pub(crate) async fn blob_upload<P>(filename: P, sas: Url) -> Result<()>
 where
     P: AsRef<Path>,
@@ -27,7 +27,6 @@ where
     let block_size = std::cmp::max(1024 * 1024 * 10, size / 50_000);
     let block_size_usize = block_size.try_into()?;
 
-    let sas: SasToken = sas.try_into()?;
     let style = ProgressStyle::with_template(
         "[{elapsed_precise}] [{wide_bar}] {bytes}/{total_bytes} ({bytes_per_sec})",
     )?;
@@ -35,15 +34,7 @@ where
         .with_style(style)
         .with_finish(ProgressFinish::AndLeave);
 
-    let blob_name = sas
-        .path
-        .as_ref()
-        .ok_or(Error::InvalidSas("missing blob path"))?;
-
-    let credentials = StorageCredentials::sas_token(&sas.token)?;
-    let blob_client = BlobServiceClient::new(&sas.account, credentials)
-        .container_client(&sas.container)
-        .blob_client(blob_name);
+    let blob_client = BlobClient::from_sas_url(&sas)?;
 
     let mut block_list = vec![];
     for i in 0..usize::MAX {
@@ -54,7 +45,7 @@ where
             break;
         }
         handle = take_handle.into_inner();
-        let id = Bytes::from(format!("{:032x}", i));
+        let id = Bytes::from(format!("{i:032x}"));
         blob_client
             .put_block(id.clone(), data)
             .into_future()
@@ -67,20 +58,21 @@ where
         .into_iter()
         .map(|x| BlobBlockType::Uncommitted(BlockId::new(x)))
         .collect::<Vec<_>>();
-    let block_list = BlockList { blocks };
-    blob_client.put_block_list(block_list).into_future().await?;
+    blob_client
+        .put_block_list(BlockList { blocks })
+        .into_future()
+        .await?;
 
     Ok(())
 }
 
+/// Convert a SAS URL to an Azure Blob Storage `ContainerClient`
 pub(crate) fn container_client(container_sas: &Url) -> Result<ContainerClient> {
-    let sas: SasToken = container_sas.clone().try_into()?;
-    let credentials = StorageCredentials::sas_token(sas.token)?;
-    let container_client =
-        BlobServiceClient::new(sas.account, credentials).container_client(sas.container);
+    let container_client = ContainerClient::from_sas_url(container_sas)?;
     Ok(container_client)
 }
 
+/// Convert a container SAS URL to an Azure Blob Storage `BlobClient`
 fn blob_client<N>(container_sas: &Url, name: N) -> Result<BlobClient>
 where
     N: Into<String>,
@@ -90,6 +82,7 @@ where
     Ok(blob_client)
 }
 
+/// Return the contents of a blob
 pub(crate) async fn blob_get<N>(container_sas: &Url, name: N) -> Result<Vec<u8>>
 where
     N: Into<String>,
@@ -99,6 +92,7 @@ where
     Ok(blob)
 }
 
+/// Download the contents of the specified blob to a file
 pub(crate) async fn blob_download<P, N>(container_sas: &Url, name: N, filename: P) -> Result<()>
 where
     P: AsRef<Path>,
@@ -120,45 +114,4 @@ where
     }
 
     Ok(())
-}
-
-struct SasToken {
-    account: String,
-    container: String,
-    path: Option<String>,
-    token: String,
-}
-
-impl TryFrom<Url> for SasToken {
-    type Error = Error;
-
-    fn try_from(url: Url) -> Result<Self> {
-        let account = url
-            .host_str()
-            .ok_or(Error::InvalidSas("missing host)"))?
-            .split_terminator('.')
-            .next()
-            .ok_or(Error::InvalidSas("missing account name"))?
-            .to_string();
-
-        let token = url
-            .query()
-            .ok_or(Error::InvalidSas("missing token"))?
-            .to_string();
-
-        let path = url.path();
-        let mut v: Vec<&str> = path.split_terminator('/').collect();
-        v.remove(0);
-        let container = v.remove(0).to_string();
-        let path = v.join("/");
-
-        let path = if path.is_empty() { None } else { Some(path) };
-
-        Ok(Self {
-            account,
-            container,
-            path,
-            token,
-        })
-    }
 }

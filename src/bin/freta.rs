@@ -204,7 +204,7 @@ struct ConfigCmd {
 
 async fn set_config(config_opts: ConfigCmd) -> Result<()> {
     let config = if config_opts.reset {
-        Config::default()
+        Config::new()?
     } else {
         let mut config = Config::load_or_default().await?;
 
@@ -281,7 +281,7 @@ where
     D: serde::Serialize,
 {
     let json = serde_json::to_string_pretty(&data)?;
-    println!("{}", json);
+    println!("{json}");
     Ok(())
 }
 
@@ -335,8 +335,8 @@ async fn images(images_opts: ImagesCmd) -> Result<()> {
             let format = if let Some(format) = opts.format {
                 format
             } else if let Some(ext) = opts.file.extension() {
-                let ext = ext.to_string_lossy().to_string();
-                ImageFormat::from_str(&ext).map_err(|_| Error::Extension(ext.into()))?
+                let ext_str = ext.to_string_lossy().to_lowercase();
+                ImageFormat::from_str(&ext_str).map_err(|_| Error::Extension(ext_str.into()))?
             } else {
                 return Err(Error::Extension("missing file extension".into()));
             };
@@ -357,6 +357,14 @@ async fn images(images_opts: ImagesCmd) -> Result<()> {
     }
 }
 
+/// perform eula subcommands
+///
+/// # Errors
+///
+/// This returns err in the following cases:
+/// 1. Getting the EULA from the service fails
+/// 2. Writing the EULA to the stdout fails
+/// 3. Sending the acceptance or rejection of the EULA to the service fails
 async fn eula(opts: EulaCommands) -> Result<()> {
     let mut client = Client::new().await?;
     match opts {
@@ -386,7 +394,7 @@ async fn info() -> Result<()> {
     let mut client = Client::new().await?;
     let info = client.info().await?;
     let as_str = serde_json::to_string_pretty(&info)?;
-    println!("{}", as_str);
+    println!("{as_str}");
 
     Ok(())
 }
@@ -419,7 +427,7 @@ async fn main() -> Result<()> {
             eula(x.eula_commands).await?;
         }
         SubCommands::Licenses => {
-            println!("{}", LICENSES);
+            println!("{LICENSES}");
         }
     };
 

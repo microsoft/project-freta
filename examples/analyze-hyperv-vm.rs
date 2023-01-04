@@ -60,7 +60,7 @@ where
         .build();
     let output = ps
         .run(query.as_ref())
-        .map_err(|e| Error::Other("launching powershell failed", format!("{:?}", e)))?;
+        .map_err(|e| Error::Other("launching powershell failed", format!("{e:?}")))?;
     if !output.success() {
         return Err(Error::Other(
             "command failed",
@@ -121,13 +121,11 @@ async fn create_snapshot(
     info!("creating hyperv snapshot id: {}", snapshot_id);
 
     run(format!(
-        "get-vm -id {} | checkpoint-vm -snapshotname {}",
-        vm_id, snapshot_id
+        "get-vm -id {vm_id} | checkpoint-vm -snapshotname {snapshot_id}"
     ))?;
 
     let output = run(format!(
-        "get-vm -id {} | get-vmsnapshot -name {} | select id, path | convertto-json",
-        vm_id, snapshot_id
+        "get-vm -id {vm_id} | get-vmsnapshot -name {snapshot_id} | select id, path | convertto-json"
     ))?;
     let snapshot: Snapshot = serde_json::from_str(&output)?;
     let path = snapshot
@@ -140,8 +138,7 @@ async fn create_snapshot(
     info!("image_id: {}", image.image_id);
 
     run(format!(
-        "get-vm -id {} | get-vmsnapshot -name {} | remove-vmsnapshot",
-        vm_id, snapshot_id
+        "get-vm -id {vm_id} | get-vmsnapshot -name {snapshot_id} | remove-vmsnapshot"
     ))?;
 
     Ok(image)

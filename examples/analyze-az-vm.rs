@@ -72,7 +72,7 @@ async fn main() -> Result<()> {
     });
 
     let protected_settings = json!({
-        "commandToExecute": format!("./avml /root/{}.lime --compress --delete --sas-url '{}'", Uuid::new_v4(), image_url),
+        "commandToExecute": format!("./avml /root/{}.lime --compress --delete --sas-url '{image_url}'", Uuid::new_v4()),
     });
 
     let extension_parameters = VirtualMachineExtension {

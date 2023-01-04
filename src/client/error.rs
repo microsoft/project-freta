@@ -22,7 +22,7 @@ pub enum Error {
     Io(#[from] std::io::Error),
 
     /// The service responded in an unexpected fashion
-    #[error("invalid response: {0}")]
+    #[error("invalid response from the freta service: {0}")]
     InvalidResponse(&'static str),
 
     /// Analysis of the image failed
@@ -73,19 +73,17 @@ pub enum Error {
 /// Freta Result wrapper
 pub type Result<T> = std::result::Result<T, Error>;
 
-pub(crate) fn format_error(
-    e: &impl std::error::Error,
-    f: &mut std::fmt::Formatter,
-) -> std::fmt::Result {
-    write!(f, "error: {}", e)?;
+/// Format an error and its sources
+fn format_error(e: &impl std::error::Error, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    write!(f, "error: {e}")?;
 
     let mut source = e.source();
 
-    if e.source().is_some() {
+    if source.is_some() {
         writeln!(f, "\ncaused by:")?;
         let mut i: usize = 0;
         while let Some(inner) = source {
-            writeln!(f, "{: >5}: {}", i, inner)?;
+            writeln!(f, "{i: >5}: {inner}")?;
             source = inner.source();
             i += 1;
         }

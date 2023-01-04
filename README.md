@@ -66,6 +66,34 @@ $ freta images list
 ]
 ```
 
+## Using Freta with automated tools
+
+Instead of logging in as a user to the Freta service, automated tools can use the [Azure service principals](https://learn.microsoft.com/en-us/cli/azure/create-an-azure-service-principal-azure-cli) for authentication.
+
+First, create a service principal:
+```
+$ az ad sp create-for-rbac -n YOUR_SERVICE_PRINCIPAL_NAME_HERE
+{
+  "appId": "00000000-0000-0000-0000-000000000000",
+  "displayName": "YOUR_SERVICE_PRINCIPAL_NAME_HERE",
+  "password": "REDACTED_PASSWORD_HERE",
+  "tenant": "REDACTED_TENANT_HERE",
+}
+```
+
+Then configure the freta client to use the newly created service principal, use the `appId` from the output of the previous command as the `--client-id` and the `password` as the `--client-secret`, and use the `tenant` as the `--tenant-id`:
+```
+$ freta config --client-id APP_ID_HERE --client-secret PASSWORD_HERE --tenant-id TENANT_HERE
+[2023-01-04T19:43:34Z INFO  freta] config saved: Config { api url: "https://freta.microsoft.com/", client id: "00000000-0000-0000-0000-000000000000", tenant id: "REDACTED_TENANT_HERE", client secret: "[redacted]", scope: "api://a934fc14-92d7-4127-aecd-bddab35935da/.default" }
+```
+
+Before using the service, the service principal must agree to the Freta EULA. This can be done by running the following command:
+```
+$ freta eula accept
+```
+
+From here, the client can be used in an automated fashion.
+
 # Contributing
 
 This project welcomes contributions and suggestions. Most contributions require you to
