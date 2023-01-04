@@ -94,7 +94,10 @@ pub struct Info {
 
 #[must_use]
 #[inline]
-pub(crate) fn bool_true() -> bool {
+/// helper function that always returns true
+///
+/// This is used to provide a default value for Serde deserialization
+const fn bool_true() -> bool {
     true
 }
 

@@ -1,6 +1,9 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 
-/// Parse a single key-value pair
+/// Parse a single key-value pair of `X=Y` into a typed tuple of `(X, Y)`.
+///
+/// # Errors
+/// Returns an `Err` if any of the keys or values cannot be parsed or if no `=` is found.
 pub fn parse_key_val<T, U>(
     s: &str,
 ) -> std::result::Result<(T, U), Box<dyn std::error::Error + Send + Sync + 'static>>
@@ -13,6 +16,6 @@ where
     if let Some((key, value)) = s.split_once('=') {
         Ok((key.parse()?, value.parse()?))
     } else {
-        Err(format!("invalid KEY=value: no `=` found in `{}`", s).into())
+        Err(format!("invalid KEY=value: no `=` found in `{s}`").into())
     }
 }

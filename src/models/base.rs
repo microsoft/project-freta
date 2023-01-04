@@ -75,7 +75,7 @@ impl Serialize for OwnerId {
     where
         S: Serializer,
     {
-        serializer.collect_str(&format!("{}", self))
+        serializer.collect_str(&format!("{self}"))
     }
 }
 
@@ -128,7 +128,7 @@ pub enum ImageState {
 impl ImageState {
     /// Is the image state such that re-analyzing is possible
     #[must_use]
-    pub fn can_reimage(&self) -> bool {
+    pub const fn can_reimage(&self) -> bool {
         match self {
             ImageState::WaitingForUpload
             | ImageState::Running
@@ -170,7 +170,7 @@ pub enum ImageFormat {
 
 /// Error converting a string into an `ImageFormat`
 #[derive(Debug)]
-pub struct ParseError {}
+pub struct ParseError;
 
 impl FromStr for ImageFormat {
     type Err = ParseError;
@@ -189,7 +189,13 @@ impl FromStr for ImageFormat {
 
 impl Display for ImageFormat {
     fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
-        write!(f, "{:?}", self)
+        match self {
+            Self::Vmrs => write!(f, "vmrs"),
+            Self::Raw => write!(f, "raw"),
+            Self::Lime => write!(f, "lime"),
+            Self::Core => write!(f, "core"),
+            Self::Avmh => write!(f, "avmh"),
+        }
     }
 }
 

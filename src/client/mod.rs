@@ -2,8 +2,11 @@
 
 /// Freta CLI command line parsing helpers
 pub mod argparse;
+/// HTTP client used by the client
 pub(crate) mod backend;
+/// client config
 pub(crate) mod config;
+/// client error types
 pub(crate) mod error;
 
 use crate::{
@@ -29,6 +32,9 @@ use std::{collections::BTreeMap, path::Path, pin::Pin, time::Duration};
 use tokio::time::sleep;
 use url::Url;
 
+/// convert an `Iterator` of key/value pairs into a `BTreeMap`
+///
+/// Useful for turning `[("key", "value")]` into `BTreeMap` of `{ "key": "value" }`
 fn as_tags<T, K, V>(tags: T) -> BTreeMap<String, String>
 where
     T: IntoIterator<Item = (K, V)>,
@@ -40,34 +46,57 @@ where
         .collect()
 }
 
+/// interval for polling image status
 const IMAGE_MONITOR_INTERVAL: Duration = Duration::from_secs(1);
 
 #[derive(Debug)]
 /// Freta Client
 pub struct Client {
+    /// Backend client
     backend: Backend,
 }
 
 impl Client {
     /// Create a new client for the Freta service
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if creating the backend REST API
+    /// client fails
     pub async fn new() -> Result<Self> {
         let backend = Backend::new().await?;
         Ok(Self { backend })
     }
 
     /// logout of the service
+    ///
+    /// # Errors
+    /// This function will return an error if deleting the authentication cache
+    /// fails
     pub async fn logout() -> Result<()> {
         Backend::logout().await?;
         Ok(())
     }
 
     /// Retrieve user configuration settings
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the following conditions:
+    /// 1. The connection to the Service fails
+    /// 2. The user does not have permission to get their configuration
     pub async fn user_config_get(&mut self) -> Result<UserConfig> {
         let res = self.backend.get("/api/users", None::<String>).await?;
         Ok(res)
     }
 
     /// Update user configuration settings
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the following conditions:
+    /// 1. The connection to the Service fails
+    /// 2. The user does not have permission to update their configuration
     pub async fn user_config_update(
         &mut self,
         eula_accepted: Option<String>,
@@ -82,12 +111,26 @@ impl Client {
     }
 
     /// Get the latest EULA required to use the service
+    ///
+    /// Note, all API requests to the service will return the EULA as part of
+    /// the error in the HTTP Error response if the EULA has not been accepted.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the following conditions:
+    /// 1. The connection to the Service fails
     pub async fn eula(&mut self) -> Result<Bytes> {
         let res = self.backend.get_raw("/api/eula", None::<String>).await?;
         Ok(res)
     }
 
     /// Retrieve information about the service
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the following conditions:
+    /// 1. The connection to the Service fails
+    /// 2. The user does not have permission to get the service information
     pub async fn info(&mut self) -> Result<Info> {
         let res = self.backend.get("/api/info", None::<String>).await?;
         Ok(res)
@@ -111,6 +154,12 @@ impl Client {
     /// # Ok(())
     /// # }
     /// ```
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the following conditions:
+    /// 1. The connection to the Service fails
+    /// 2. The user does not have permission
     pub fn images_list(
         &mut self,
         image_id: Option<ImageId>,
@@ -145,6 +194,12 @@ impl Client {
     /// [SAS URL](https://docs.microsoft.com/azure/storage/common/storage-sas-overview)
     /// that can be used to upload a memory snapshot to Freta via tools such as
     /// [azcopy](https://learn.microsoft.com/en-us/azure/storage/common/storage-ref-azcopy)
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the following conditions:
+    /// 1. The connection to the Service fails
+    /// 2. The user does not have permission to create images.
     pub async fn images_create<T, K, V>(&mut self, format: ImageFormat, tags: T) -> Result<Image>
     where
         T: IntoIterator<Item = (K, V)>,
@@ -158,6 +213,12 @@ impl Client {
     }
 
     /// Create and upload an image to Freta
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the following cases:
+    /// 1. Creating the image in Freta fails
+    /// 2. Uploading the blob to Azure Storage fails
     pub async fn images_upload<P, T, K, V>(
         &mut self,
         format: ImageFormat,
@@ -174,29 +235,40 @@ impl Client {
 
         info!("uploading as image id: {}", image.image_id);
 
-        let image_url = image
-            .image_url
-            .clone()
-            .ok_or(Error::InvalidResponse("missing image_url"))?;
+        let image_url = image.image_url.clone().ok_or(Error::InvalidResponse(
+            "missing image_url from the response",
+        ))?;
         blob_upload(path, image_url).await?;
 
         Ok(image)
     }
 
     /// Get information on an image
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the following conditions:
+    /// 1. The connection to the Service fails
+    /// 2. The user does not have permission to read the specified image
     pub async fn images_get(&mut self, image_id: ImageId) -> Result<Image> {
         let res = self
             .backend
-            .get(&format!("/api/images/{}", image_id), None::<bool>)
+            .get(&format!("/api/images/{image_id}"), None::<bool>)
             .await?;
         Ok(res)
     }
 
     /// Delete an image
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the following conditions:
+    /// 1. The connection to the Service fails
+    /// 2. The user does not have permission to delete the specified image
     pub async fn images_delete(&mut self, image_id: ImageId) -> Result<ImageDeleteResponse> {
         let res = self
             .backend
-            .delete(&format!("/api/images/{}", image_id))
+            .delete(&format!("/api/images/{image_id}"))
             .await?;
         Ok(res)
     }
@@ -205,6 +277,12 @@ impl Client {
     ///
     /// If `tags` is not None, then the tags are overwritten.
     /// If `shareable` is not None, then the shareable value is overwritten.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the following conditions:
+    /// 1. The connection to the Service fails
+    /// 2. The user does not have permission to update metadata for the specified image
     pub async fn images_update<T, K, V>(
         &mut self,
         image_id: ImageId,
@@ -220,33 +298,57 @@ impl Client {
         let update = ImageUpdate { tags, shareable };
         let res = self
             .backend
-            .post(&format!("/api/images/{}", image_id), update)
+            .post(&format!("/api/images/{image_id}"), update)
             .await?;
         Ok(res)
     }
 
     /// Reanalyze an image
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the following conditions:
+    /// 1. The connection to the Service fails
+    /// 2. The user does not have permission to reanalyze the specified image
     pub async fn images_reanalyze(&mut self, image_id: ImageId) -> Result<ImageReanalyzeResponse> {
         let res = self
             .backend
-            .patch(&format!("/api/images/{}", image_id), None::<bool>)
+            .patch(&format!("/api/images/{image_id}"), None::<bool>)
             .await?;
         Ok(res)
     }
 
     /// Get the SAS URL for the Azure Storage container for artifacts extracted
     /// from the image
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the follow cases:
+    /// 1. Getting the image metadata from the service fails
+    /// 2. The image metadata in the service is missing `artifacts_url` which
+    ///    should always be returned when getting the metadata for a single
+    ///    image.
     async fn artifacts_get_sas(&mut self, image_id: ImageId) -> Result<Url> {
         let image = self.images_get(image_id).await?;
         let image_url = match image.artifacts_url {
             Some(image_url) => image_url,
-            None => return Err(Error::InvalidResponse("missing artifacts_url")),
+            None => {
+                return Err(Error::InvalidResponse(
+                    "missing artifacts_url from the response",
+                ))
+            }
         };
 
         Ok(image_url)
     }
 
     /// List the artifacts extracted from the image
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the follow cases:
+    /// 1. Getting the artifacts SAS URL for the image fails
+    /// 2. Listing the blobs from the Azure Storage fails
     ///
     /// # Example
     ///
@@ -287,6 +389,12 @@ impl Client {
 
     /// Get an artifact extracted from the image
     ///
+    /// # Errors
+    ///
+    /// This function will return an error in the follow cases:
+    /// 1. Getting the artifacts SAS URL for the image fails
+    /// 2. Getting the artifact fails
+    ///
     /// # Example
     ///
     /// ```rust,no_run
@@ -309,6 +417,12 @@ impl Client {
     }
 
     /// Download an artifact extracted from the image to a file
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the follow cases:
+    /// 1. Getting the artifacts SAS URL for the image fails
+    /// 2. Downloading the artifact fails
     ///
     /// # Example
     ///
@@ -338,6 +452,12 @@ impl Client {
     }
 
     /// Monitor the ongoing state of an image until the analysis has completed.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the following cases:
+    /// 1. Getting the image fails
+    /// 2. The image analysis state gets to `Failed` or is not recognized
     ///
     /// # Example
     ///

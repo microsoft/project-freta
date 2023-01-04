@@ -17,23 +17,35 @@ use std::{path::PathBuf, time::Duration};
 use time::OffsetDateTime;
 use tokio::fs;
 
+/// Developers of the Freta service use this URL as a for a local instance using
+/// the Azure Functions Core Tools, which does not provide authentication.  As
+/// such, when using this endpoint the auth token type should be None.
 const LOCAL_DEVELOPMENT_ENDPOINT: &str = "http://localhost:7071";
 
+/// The type of authentication token
 #[derive(Debug, Serialize, Deserialize, Clone)]
 enum TokenType {
+    /// AAD "secret" based authentication
     ClientCredentials((AccessToken, Secret)),
+    /// AAD Device Code based authentication
     DeviceCode((AccessToken, AccessToken)),
+    /// Token without authentication.  Used for interaction with local development endpoint
     None,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+/// Authentication token for the Freta service
 pub(crate) struct Auth {
+    /// The Client ID of the application used for authentication
     client_id: ClientId,
+    /// The type of auth token
     token: TokenType,
+    /// The time at which the token expires
     expires_on: OffsetDateTime,
 }
 
 impl Auth {
+    /// Create an `Auth` object
     pub(crate) async fn new(config: &Config) -> Result<Self> {
         if config.api_url.to_string() == LOCAL_DEVELOPMENT_ENDPOINT {
             return Ok(Self::new_without_auth());
@@ -46,6 +58,7 @@ impl Auth {
         Self::new_without_cache(config).await
     }
 
+    /// Create an `Auth` object without authentication
     fn new_without_auth() -> Self {
         Self {
             client_id: ClientId::new("development".into()),
@@ -54,6 +67,7 @@ impl Auth {
         }
     }
 
+    /// Create an `Auth` object, using the existing cache if possible
     async fn new_from_cache(config: &Config) -> Result<Option<Self>> {
         if let Ok(entry) = Self::from_cache().await {
             if entry.client_id == config.client_id {
@@ -65,6 +79,7 @@ impl Auth {
         Ok(None)
     }
 
+    /// Create an `Auth` object without using existing cache
     async fn new_without_cache(config: &Config) -> Result<Self> {
         let auth = if let Some(secret) = config.client_secret.as_ref() {
             Self::with_client_secret(config, secret).await?
@@ -76,8 +91,10 @@ impl Auth {
         Ok(auth)
     }
 
+    /// Create an `Auth` object from a client secret
     async fn with_client_secret(config: &Config, client_secret: &Secret) -> Result<Self> {
         let scope = config.get_scope();
+        let now = OffsetDateTime::now_utc();
 
         let response = client_credentials_flow::perform(
             new_http_client(),
@@ -90,7 +107,8 @@ impl Auth {
 
         let expires_on = response
             .expires_on
-            .ok_or(Error::InvalidToken("missing expires_on"))?;
+            .unwrap_or_else(|| now + Duration::from_secs(response.expires_in));
+
         let token = TokenType::ClientCredentials((response.access_token, client_secret.clone()));
 
         Ok(Self {
@@ -100,6 +118,8 @@ impl Auth {
         })
     }
 
+    #[allow(clippy::print_stderr)]
+    /// Create an `Auth` object from a device code flow
     async fn with_service(config: &Config) -> Result<Self> {
         let client_id = config.client_id.clone();
         let scope = config.get_scope();
@@ -146,6 +166,7 @@ impl Auth {
         })
     }
 
+    /// refresh a `DeviceCode` based access token
     async fn refresh_device_code(
         &self,
         config: &Config,
@@ -176,6 +197,7 @@ impl Auth {
         })
     }
 
+    /// refresh the client access token
     pub(crate) async fn refresh_token(&mut self, config: &Config) -> Result<()> {
         match &self.token {
             TokenType::ClientCredentials((_, secret)) => {
@@ -201,6 +223,7 @@ impl Auth {
         Ok(())
     }
 
+    /// Get the token from the cache, refreshing it if necessary.
     pub(crate) async fn get_token(&mut self, config: &Config) -> Result<Option<AccessToken>> {
         if self.expires_on < OffsetDateTime::now_utc() {
             self.refresh_token(config).await?;
@@ -213,10 +236,12 @@ impl Auth {
         }
     }
 
+    /// Get the on-disk path for the authentication cache
     fn get_path() -> Result<PathBuf> {
         get_config_dir().map(|p| p.join("login.cache"))
     }
 
+    /// Save the authentication to disk.
     async fn save(&self) -> Result<()> {
         let path = Self::get_path()?;
         let contents = serde_json::to_string_pretty(self)?;
@@ -224,6 +249,7 @@ impl Auth {
         Ok(())
     }
 
+    /// Remove the cached authentication from disk.
     pub(crate) async fn logout() -> Result<()> {
         let path = Self::get_path()?;
         if path.exists() {
@@ -232,6 +258,7 @@ impl Auth {
         Ok(())
     }
 
+    /// Load the cached authentication from disk.
     async fn from_cache() -> Result<Self> {
         let path = Self::get_path()?;
         let contents = fs::read_to_string(&path).await?;
