@@ -1,6 +1,8 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 
+/// backend client authentication implementation
 mod auth;
+/// helpers for dealing with Azure Blob Storage
 pub(crate) mod azure_blobs;
 
 use crate::{
@@ -17,18 +19,23 @@ use reqwest::ClientBuilder;
 use serde::{de::DeserializeOwned, Serialize};
 
 #[derive(Debug)]
+/// REST API client implementation
 pub(crate) struct Backend {
+    /// CLI configuration
     config: Config,
+    /// http client
     http_client: reqwest::Client,
+    /// backend authentication information
     auth: Auth,
 }
 
 impl Backend {
+    /// Create a new backend client
     pub(crate) async fn new() -> Result<Self> {
         let config = Config::load_or_default().await?;
 
         let http_client = ClientBuilder::new()
-            .user_agent(format!("{}/{}", SDK_NAME, SDK_VERSION))
+            .user_agent(format!("{SDK_NAME}/{SDK_VERSION}"))
             .build()?;
         let auth = Auth::new(&config).await?;
 
@@ -39,11 +46,13 @@ impl Backend {
         })
     }
 
+    /// log out of the backend
     pub(crate) async fn logout() -> Result<()> {
         Auth::logout().await?;
         Ok(())
     }
 
+    /// send the request to the backend and return the results in `Bytes`
     async fn execute_raw<Q>(
         &mut self,
         method: reqwest::Method,
@@ -71,8 +80,8 @@ impl Backend {
             builder = builder.bearer_auth(token.secret());
         }
 
-        if let Some(body) = body {
-            builder = builder.json(&body);
+        if let Some(json_body) = body {
+            builder = builder.json(&json_body);
         } else {
             builder = builder.header("Content-Length", "0");
         }
@@ -80,17 +89,18 @@ impl Backend {
         let res = builder.send().await?;
 
         if res.status() == reqwest::StatusCode::UNAVAILABLE_FOR_LEGAL_REASONS {
-            let body = res.bytes().await?;
-            let eula = String::from_utf8_lossy(&body).to_string();
+            let response_body = res.bytes().await?;
+            let eula = String::from_utf8_lossy(&response_body).to_string();
             return Err(Error::Eula(eula));
         }
 
         let res = res.error_for_status()?;
-        let body = res.bytes().await?;
-        trace!("response body: {:?}", body);
-        Ok(body)
+        let response_body = res.bytes().await?;
+        trace!("response body: {:?}", response_body);
+        Ok(response_body)
     }
 
+    /// send the request to the backend and deserialize the response as JSON
     async fn execute<Q, R>(
         &mut self,
         method: reqwest::Method,
@@ -107,6 +117,7 @@ impl Backend {
         Ok(as_json)
     }
 
+    /// Send a GET request to the backend, but return the results in `Bytes`
     pub(crate) async fn get_raw<Q>(&mut self, path: &str, query: Option<Q>) -> Result<Bytes>
     where
         Q: Serialize,
@@ -115,6 +126,7 @@ impl Backend {
             .await
     }
 
+    /// Send a GET request to the backend
     pub(crate) async fn get<Q, R>(&mut self, path: &str, query: Option<Q>) -> Result<R>
     where
         Q: Serialize,
@@ -123,6 +135,7 @@ impl Backend {
         self.execute(reqwest::Method::GET, path, query, None).await
     }
 
+    /// Send a POST request to the backend.
     pub(crate) async fn post<Q, R>(&mut self, path: &str, body: Q) -> Result<R>
     where
         Q: Serialize,
@@ -132,6 +145,7 @@ impl Backend {
             .await
     }
 
+    /// Send a DELETE request to the backend.
     pub(crate) async fn delete<R>(&mut self, path: &str) -> Result<R>
     where
         R: DeserializeOwned,
@@ -140,6 +154,7 @@ impl Backend {
             .await
     }
 
+    /// Send a PATCH request to the backend.
     pub(crate) async fn patch<Q, R>(&mut self, path: &str, body: Q) -> Result<R>
     where
         Q: Serialize,

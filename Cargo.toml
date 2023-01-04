@@ -1,6 +1,6 @@
 [package]
 name = "freta"
-version = "0.10.1"
+version = "0.11.0"
 edition = "2021"
 license = "MIT"
 description = "Project Freta client"
@@ -16,7 +16,6 @@ client = [
     "dep:async-stream",
     "dep:azure_core", 
     "dep:azure_identity", 
-    "dep:azure_storage", 
     "dep:azure_storage_blobs", 
     "dep:env_logger",
     "dep:home", 
@@ -37,13 +36,12 @@ serde_json = "1.0"
 strum = "0.24"
 strum_macros = "0.24"
 time = "0.3"
-url = {version="2.2"}
+url = "2.3"
 
 async-stream = {version="0.3", optional=true}
-azure_core = {version="0.7", optional=true}
-azure_identity = {version="0.8", optional=true}
-azure_storage = {version="0.8", optional=true}
-azure_storage_blobs = {version="0.8", optional=true}
+azure_core = {version="0.8", optional=true}
+azure_identity = {version="0.9", optional=true}
+azure_storage_blobs = {version="0.9", optional=true}
 env_logger = {version="0.10", optional=true}
 home = {version="0.5", optional=true}
 indicatif = {version="0.17", optional=true}
@@ -54,7 +52,7 @@ tokio = {version="1.23", features=["full"], optional=true}
 uuid = {version="1.2", features=["serde"]}
 
 [dev-dependencies]
-azure_mgmt_compute = "0.8"
+azure_mgmt_compute = "0.9"
 powershell_script = "1.0"
 
 [[bin]]
