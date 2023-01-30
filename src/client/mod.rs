@@ -330,13 +330,10 @@ impl Client {
     ///    image.
     async fn artifacts_get_sas(&mut self, image_id: ImageId) -> Result<Url> {
         let image = self.images_get(image_id).await?;
-        let image_url = match image.artifacts_url {
-            Some(image_url) => image_url,
-            None => {
-                return Err(Error::InvalidResponse(
-                    "missing artifacts_url from the response",
-                ))
-            }
+        let Some(image_url) = image.artifacts_url else {
+            return Err(Error::InvalidResponse(
+                "missing artifacts_url from the response",
+            ))
         };
 
         Ok(image_url)
