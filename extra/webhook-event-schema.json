@@ -1,0 +1,103 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WebhookEvent",
+  "description": "Freta Webhook Event\n\nThis struct defines the structure of a webhook event sent to user's configured HTTP endpoint via HTTP POST.",
+  "type": "object",
+  "required": [
+    "event_id",
+    "event_type",
+    "timestamp"
+  ],
+  "properties": {
+    "event_id": {
+      "description": "Unique identifier for the event",
+      "allOf": [
+        {
+          "$ref": "#/definitions/WebhookEventId"
+        }
+      ]
+    },
+    "event_type": {
+      "description": "Type of the event",
+      "allOf": [
+        {
+          "$ref": "#/definitions/WebhookEventType"
+        }
+      ]
+    },
+    "image": {
+      "description": "The image that triggered the event, if applicable",
+      "anyOf": [
+        {
+          "$ref": "#/definitions/ImageId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "timestamp": {
+      "description": "Timestamp of when the event occurred",
+      "type": "string"
+    }
+  },
+  "definitions": {
+    "ImageId": {
+      "description": "Unique identifier for an `Image`",
+      "type": "string",
+      "format": "uuid"
+    },
+    "WebhookEventId": {
+      "description": "Unique identifier for a `WebhookEvent` entry",
+      "type": "string",
+      "format": "uuid"
+    },
+    "WebhookEventType": {
+      "description": "Webhook Event Types",
+      "oneOf": [
+        {
+          "description": "Ping event, used to validate the webhook functionality",
+          "type": "string",
+          "enum": [
+            "ping"
+          ]
+        },
+        {
+          "description": "an Image was created",
+          "type": "string",
+          "enum": [
+            "image_created"
+          ]
+        },
+        {
+          "description": "an Image was deleted",
+          "type": "string",
+          "enum": [
+            "image_deleted"
+          ]
+        },
+        {
+          "description": "an Image was successfully analyzed",
+          "type": "string",
+          "enum": [
+            "image_analysis_completed"
+          ]
+        },
+        {
+          "description": "an Image failed to be analyzed",
+          "type": "string",
+          "enum": [
+            "image_analysis_failed"
+          ]
+        },
+        {
+          "description": "an Image State was updated",
+          "type": "string",
+          "enum": [
+            "image_state_updated"
+          ]
+        }
+      ]
+    }
+  }
+}

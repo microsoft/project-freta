@@ -135,6 +135,15 @@ impl Backend {
         self.execute(reqwest::Method::GET, path, query, None).await
     }
 
+    /// Send a PATCH request to the backend but do not deserialize the response.
+    pub(crate) async fn patch_raw<Q>(&mut self, path: &str, body: Q) -> Result<Bytes>
+    where
+        Q: Serialize,
+    {
+        self.execute_raw(reqwest::Method::PATCH, path, None, Some(body))
+            .await
+    }
+
     /// Send a POST request to the backend.
     pub(crate) async fn post<Q, R>(&mut self, path: &str, body: Q) -> Result<R>
     where

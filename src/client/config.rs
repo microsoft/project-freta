@@ -20,8 +20,11 @@ pub struct Secret(String);
 impl Secret {
     #[must_use]
     /// Create a new `Secret`
-    pub const fn new(secret: String) -> Self {
-        Self(secret)
+    pub fn new<S>(secret: S) -> Self
+    where
+        S: Into<String>,
+    {
+        Self(secret.into())
     }
 
     /// Unwrap the secret for use.
@@ -36,6 +39,12 @@ impl Secret {
 impl fmt::Debug for Secret {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{REDACTED}")
+    }
+}
+
+impl From<String> for Secret {
+    fn from(secret: String) -> Self {
+        Self::new(secret)
     }
 }
 

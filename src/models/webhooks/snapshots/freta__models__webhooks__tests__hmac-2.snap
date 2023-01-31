@@ -1,0 +1,5 @@
+---
+source: client/src/models/webhooks/mod.rs
+expression: event_as_string
+---
+"{\"event_id\":\"00000000-0000-0000-0000-000000000001\",\"event_type\":\"image_created\",\"timestamp\":\"1970-01-01T00:00:00Z\",\"image\":\"00000000-0000-0000-0000-000000000000\"}"

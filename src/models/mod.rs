@@ -5,3 +5,6 @@ pub mod base;
 
 /// Models for interacting with the Freta service
 pub mod service;
+
+/// Models for Freta webhooks
+pub mod webhooks;
