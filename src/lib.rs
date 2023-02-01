@@ -11,9 +11,13 @@
 //! # #[tokio::main]
 //! # async fn main() -> Result<()> {
 //! let mut client = Client::new().await?;
-//! let image = client.images_upload(Lime, [("name", "test image")], "./image.lime").await?;
+//! let image = client
+//!     .images_upload(Lime, [("name", "test image")], "./image.lime")
+//!     .await?;
 //! client.images_monitor(image.image_id).await?;
-//! client.artifacts_download(image.image_id, "report.json", "./report.json").await?;
+//! client
+//!     .artifacts_download(image.image_id, "report.json", "./report.json")
+//!     .await?;
 //! println!("{:?}", image);
 //! # Ok(())
 //! # }

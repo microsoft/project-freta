@@ -5,7 +5,7 @@
 //! to launch [AVML](https://github.com/microsoft/avml) to capture memory from a
 //! VM in Azure, with the resulting image being uploaded to Project Freta.
 
-use azure_identity::AzureCliCredential;
+use azure_identity::DefaultAzureCredential;
 use azure_mgmt_compute::models::{
     ResourceWithOptionalLocation, VirtualMachineExtension, VirtualMachineExtensionProperties,
 };
@@ -23,6 +23,7 @@ const EXTENSION_VERSION: &str = "2.1";
 
 #[derive(Parser)]
 struct Args {
+    subscription_id: String,
     group: String,
     vm_name: String,
 
@@ -42,13 +43,12 @@ async fn main() -> Result<()> {
 
     let mut client = Client::new().await?;
 
-    let credential = Arc::new(AzureCliCredential::new());
-    let subscription_id = AzureCliCredential::get_subscription()?;
-    let compute_client = azure_mgmt_compute::Client::builder(credential).build();
+    let creds = Arc::new(DefaultAzureCredential::default());
+    let compute_client = azure_mgmt_compute::Client::builder(creds).build();
 
     let vm = compute_client
         .virtual_machines_client()
-        .get(&cmd.group, &cmd.vm_name, &subscription_id)
+        .get(&cmd.group, &cmd.vm_name, &cmd.subscription_id)
         .into_future()
         .await?;
 
@@ -67,7 +67,7 @@ async fn main() -> Result<()> {
 
     let settings = json!({
         "fileUris": [
-            "https://github.com/microsoft/avml/releases/download/v0.9.0/avml"
+            "https://github.com/microsoft/avml/releases/download/v0.10.0/avml"
         ]
     });
 
@@ -97,7 +97,7 @@ async fn main() -> Result<()> {
             &cmd.vm_name,
             EXTENSION_PUBLISHER,
             extension_parameters,
-            &subscription_id,
+            &cmd.subscription_id,
         )
         .into_future()
         .await?;

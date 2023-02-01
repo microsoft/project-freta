@@ -1,6 +1,7 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 
 use clap::ValueEnum;
+use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::{
     collections::BTreeMap,
@@ -12,8 +13,8 @@ use time::OffsetDateTime;
 use url::Url;
 use uuid::Uuid;
 
-/// Unique identifer for an `Image`
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, Eq, PartialEq)]
+/// Unique identifier for an `Image`
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, Eq, PartialEq, JsonSchema)]
 pub struct ImageId(Uuid);
 
 impl ImageId {
@@ -44,7 +45,13 @@ impl FromStr for ImageId {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+impl From<Uuid> for ImageId {
+    fn from(uuid: Uuid) -> Self {
+        Self(uuid)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 /// The owner of an image
 pub struct OwnerId {
     /// The AAD tenant of the owner
@@ -107,7 +114,7 @@ impl<'de> serde::Deserialize<'de> for OwnerId {
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, ValueEnum, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum ImageState {
-    /// The service has not recieved notification the upload has completed
+    /// The service has not received notification the upload has completed
     WaitingForUpload,
     /// The image is ready to be queued
     ToQueue,
@@ -171,6 +178,12 @@ pub enum ImageFormat {
 /// Error converting a string into an `ImageFormat`
 #[derive(Debug)]
 pub struct ParseError;
+impl std::error::Error for ParseError {}
+impl Display for ParseError {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
+        write!(f, "parsing error")
+    }
+}
 
 impl FromStr for ImageFormat {
     type Err = ParseError;
@@ -202,7 +215,7 @@ impl Display for ImageFormat {
 /// Image entry in the Freta service
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Image {
-    /// Timestamp fo the last time the image entry was updated
+    /// Timestamp of the last time the image entry was updated
     #[serde(
         rename(deserialize = "Timestamp"),
         alias = "last_updated",

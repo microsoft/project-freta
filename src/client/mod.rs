@@ -23,13 +23,26 @@ use crate::{
             ImageCreate, ImageDeleteResponse, ImageList, ImageReanalyzeResponse, ImageUpdate,
             ImagesListResponse, Info, UserConfig, UserConfigUpdateResponse,
         },
+        webhooks::{
+            service::{
+                WebhookBoolResponse, WebhookEventReplayRequest, WebhookLogListRequest,
+                WebhookLogListResponse, WebhookSubmit, WebhooksListRequest, WebhooksListResponse,
+            },
+            Webhook, WebhookEvent, WebhookEventId, WebhookEventType, WebhookId, WebhookLog,
+        },
     },
+    Secret,
 };
 use bytes::Bytes;
 use futures::{Stream, StreamExt};
-use log::info;
-use std::{collections::BTreeMap, path::Path, pin::Pin, time::Duration};
-use tokio::time::sleep;
+use log::{debug, info};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    path::Path,
+    pin::Pin,
+    time::Duration,
+};
+use tokio::{fs::File, time::sleep};
 use url::Url;
 
 /// convert an `Iterator` of key/value pairs into a `BTreeMap`
@@ -141,15 +154,13 @@ impl Client {
     /// # Example
     ///
     /// ```rust,no_run
-    /// use freta::{Client, ImageFormat::Lime, Result};
     /// use futures::StreamExt;
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<()> {
-    /// let mut client = Client::new().await?;
+    /// # use freta::{Client, Result};
+    /// # async fn example(mut client: Client) -> Result<()> {
     /// let mut stream = client.images_list(None, None, None, true);
     /// while let Some(image) = stream.next().await {
     ///     let image = image?;
-    ///     println!("{:?}", image);
+    ///     println!("{image:?}");
     /// }
     /// # Ok(())
     /// # }
@@ -231,6 +242,9 @@ impl Client {
         K: Into<String>,
         V: Into<String>,
     {
+        debug!("uploading {}", path.as_ref().display());
+        let handle = File::open(path).await?;
+
         let image = self.images_create(format, tags).await?;
 
         info!("uploading as image id: {}", image.image_id);
@@ -238,7 +252,7 @@ impl Client {
         let image_url = image.image_url.clone().ok_or(Error::InvalidResponse(
             "missing image_url from the response",
         ))?;
-        blob_upload(path, image_url).await?;
+        blob_upload(handle, image_url).await?;
 
         Ok(image)
     }
@@ -330,13 +344,10 @@ impl Client {
     ///    image.
     async fn artifacts_get_sas(&mut self, image_id: ImageId) -> Result<Url> {
         let image = self.images_get(image_id).await?;
-        let image_url = match image.artifacts_url {
-            Some(image_url) => image_url,
-            None => {
+        let Some(image_url) = image.artifacts_url else {
                 return Err(Error::InvalidResponse(
                     "missing artifacts_url from the response",
                 ))
-            }
         };
 
         Ok(image_url)
@@ -353,17 +364,13 @@ impl Client {
     /// # Example
     ///
     /// ```rust,no_run
-    /// use freta::{Client, ImageFormat::Lime, ImageId, Result};
     /// use futures::StreamExt;
-    /// use std::str::FromStr;
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<()> {
-    /// let image_id = ImageId::from_str("a57034e6-7dfe-4b87-a894-e864dd8c8374").unwrap();
-    /// let mut client = Client::new().await?;
+    /// # use freta::{Client, ImageFormat::Lime, ImageId, Result};
+    /// # async fn example(mut client: Client, image_id: ImageId) -> Result<()> {
     /// let mut stream = client.artifacts_list(image_id);
-    /// while let Some(name) = stream.next().await {
-    ///     let name = name?;
-    ///     println!("{}", name);
+    /// while let Some(entry) = stream.next().await {
+    ///     let entry = entry?;
+    ///     println!("{entry}");
     /// }
     /// # Ok(())
     /// # }
@@ -398,15 +405,12 @@ impl Client {
     /// # Example
     ///
     /// ```rust,no_run
-    /// use freta::{Client, ImageFormat::Lime, Result, ImageId};
-    /// use std::str::FromStr;
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<()> {
-    /// let image_id = ImageId::from_str("a57034e6-7dfe-4b87-a894-e864dd8c8374").unwrap();
-    /// let mut client = Client::new().await?;
+    /// # use freta::{Client, Result, ImageId};
+    /// # async fn example(mut client: Client, image_id: ImageId) -> Result<()> {
     /// let report = client.artifacts_get(image_id, "report.json").await?;
     /// # Ok(())
     /// # }
+    /// ```
     pub async fn artifacts_get<N>(&mut self, image_id: ImageId, name: N) -> Result<Vec<u8>>
     where
         N: Into<String>,
@@ -427,15 +431,14 @@ impl Client {
     /// # Example
     ///
     /// ```rust,no_run
-    /// use freta::{Client, ImageFormat::Lime, Result, ImageId};
-    /// use std::str::FromStr;
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<()> {
-    /// let image_id = ImageId::from_str("a57034e6-7dfe-4b87-a894-e864dd8c8374").unwrap();
-    /// let mut client = Client::new().await?;
-    /// client.artifacts_download(image_id, "report.json", "/tmp/report.json").await?;
+    /// # use freta::{Client, ImageFormat::Lime, Result, ImageId};
+    /// # async fn example(mut client: Client, image_id: ImageId) -> Result<()> {
+    /// client
+    ///     .artifacts_download(image_id, "report.json", "/tmp/report.json")
+    ///     .await?;
     /// # Ok(())
     /// # }
+    /// ```
     pub async fn artifacts_download<P, N>(
         &mut self,
         image_id: ImageId,
@@ -462,14 +465,12 @@ impl Client {
     /// # Example
     ///
     /// ```rust,no_run
-    /// use freta::{Client, ImageFormat::Lime, Result, ImageId};
-    /// # #[tokio::main]
-    /// # async fn main() -> Result<()> {
-    /// let mut client = Client::new().await?;
-    /// let image = client.images_create(Lime, [("name", "test image")]).await?;
-    /// client.images_monitor(image.image_id).await?;
+    /// # use freta::{Client, Result, ImageId};
+    /// # async fn example(mut client: Client, image_id: ImageId) -> Result<()> {
+    /// client.images_monitor(image_id).await?;
     /// # Ok(())
     /// # }
+    /// ```
     pub async fn images_monitor(&mut self, image_id: ImageId) -> Result<()> {
         let mut image = self.images_get(image_id).await?;
         let mut prev_state = image.state.clone();
@@ -504,5 +505,224 @@ impl Client {
             first = false;
         }
         Ok(())
+    }
+
+    /// List the configured webhooks
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the follow cases:
+    /// 1. The connection to the Service fails
+    /// 2. The user does not have permission to get their webhooks
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use freta::{Client, Result};
+    /// # use futures::StreamExt;
+    /// # async fn example(mut client: Client) -> Result<()> {
+    /// let mut stream = client.webhooks_list();
+    /// while let Some(entry) = stream.next().await {
+    ///     let entry = entry?;
+    ///     println!("{:?}", entry);
+    /// }
+    /// #   Ok(())
+    /// # }
+    /// ```
+    pub fn webhooks_list(
+        &mut self,
+    ) -> Pin<Box<impl Stream<Item = std::result::Result<Webhook, crate::Error>> + Send + '_>> {
+        let mut request = WebhooksListRequest { continuation: None };
+        Box::pin(async_stream::try_stream! {
+            loop {
+                let result: WebhooksListResponse = self.backend.get("/api/webhooks", Some(&request)).await?;
+                for webhook in result.webhooks {
+                    yield webhook;
+                }
+                request.continuation = result.continuation;
+                if request.continuation.is_none() {
+                    break;
+                }
+            }
+        })
+    }
+
+    /// Get information on a webhook
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the following conditions:
+    /// 1. The connection to the Service fails
+    /// 2. The user does not have permission to read the specified webhook
+    pub async fn webhook_get(&mut self, webhook_id: WebhookId) -> Result<Webhook> {
+        let res = self
+            .backend
+            .get(&format!("/api/webhooks/{webhook_id}"), None::<bool>)
+            .await?;
+        Ok(res)
+    }
+
+    /// Delete a webhook
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the following conditions:
+    /// 1. The connection to the Service fails
+    /// 2. The user does not have permission to delete the specified webhook
+    pub async fn webhook_delete(&mut self, webhook_id: WebhookId) -> Result<WebhookBoolResponse> {
+        let res = self
+            .backend
+            .delete(&format!("/api/webhooks/{webhook_id}"))
+            .await?;
+        Ok(res)
+    }
+
+    /// Update a webhook
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the following conditions:
+    /// 1. The connection to the Service fails
+    /// 2. The user does not have permission to update the specified webhook
+    pub async fn webhook_update<S>(
+        &mut self,
+        webhook_id: WebhookId,
+        url: Url,
+        event_types: BTreeSet<WebhookEventType>,
+        hmac_token: Option<S>,
+    ) -> Result<Webhook>
+    where
+        S: Into<Secret>,
+    {
+        let hmac_token = hmac_token.map(std::convert::Into::into);
+
+        let update = WebhookSubmit {
+            url,
+            hmac_token,
+            event_types,
+        };
+
+        let res = self
+            .backend
+            .post(&format!("/api/webhooks/{webhook_id}"), update)
+            .await?;
+        Ok(res)
+    }
+
+    /// Ping a webhook
+    ///
+    /// This generates a synthetic event for a given webhook to test that it
+    /// works as expected without having to analyze an image.
+    ///
+    /// Note: This service provides the raw response from the Freta service to
+    /// enable the developers of webhook receivers to validate their HMAC
+    /// calculation works as expected.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the following conditions:
+    /// 1. The connection to the Service fails
+    /// 2. The user does not have permission to update the specified webhook
+    pub async fn webhook_ping(&mut self, webhook_id: WebhookId) -> Result<Bytes> {
+        let res = self
+            .backend
+            .patch_raw(&format!("/api/webhooks/{webhook_id}"), None::<bool>)
+            .await?;
+        Ok(res)
+    }
+
+    /// Resend a webhook event
+    ///
+    /// This resends a specific event to the webhook.
+    ///
+    /// Note: If the event already pending being sent to the webhook endpoint,
+    /// this will be a NOOP.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the following conditions:
+    /// 1. The connection to the Service fails
+    /// 2. The user does not have permission to resend the specified webhook event
+    pub async fn webhook_resend(
+        &mut self,
+        webhook_id: WebhookId,
+        webhook_event_id: WebhookEventId,
+    ) -> Result<WebhookEvent> {
+        let body = WebhookEventReplayRequest { webhook_event_id };
+        let res = self
+            .backend
+            .post(&format!("/api/webhooks/{webhook_id}/logs"), Some(body))
+            .await?;
+        Ok(res)
+    }
+
+    /// Create a webhook
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the following conditions:
+    /// 1. The connection to the Service fails
+    /// 2. The user does not have permission to create a webhook
+    pub async fn webhook_create<S>(
+        &mut self,
+        url: Url,
+        event_types: BTreeSet<WebhookEventType>,
+        hmac_token: Option<S>,
+    ) -> Result<Webhook>
+    where
+        S: Into<Secret>,
+    {
+        let hmac_token = hmac_token.map(std::convert::Into::into);
+
+        let update = WebhookSubmit {
+            url,
+            hmac_token,
+            event_types,
+        };
+
+        let res = self.backend.post("/api/webhooks", update).await?;
+        Ok(res)
+    }
+
+    /// List the logs for a specific webhook
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the follow cases:
+    /// 1. The connection to the Service fails
+    /// 2. The user does not have permission to get their webhooks
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use freta::{Client, models::webhooks::WebhookId, Result};
+    /// # use futures::StreamExt;
+    /// # async fn example(mut client: Client, webhook_id: WebhookId) -> Result<()> {
+    /// let mut stream = client.webhooks_logs(webhook_id);
+    /// while let Some(entry) = stream.next().await {
+    ///     let entry = entry?;
+    ///     println!("{entry:?}");
+    /// }
+    /// #    Ok(())
+    /// # }
+    /// ```
+    pub fn webhooks_logs(
+        &mut self,
+        webhook_id: WebhookId,
+    ) -> Pin<Box<impl Stream<Item = std::result::Result<WebhookLog, crate::Error>> + Send + '_>>
+    {
+        let mut request = WebhookLogListRequest { continuation: None };
+        Box::pin(async_stream::try_stream! {
+            loop {
+                let result: WebhookLogListResponse = self.backend.get(&format!("/api/webhooks/{}/logs", webhook_id), Some(&request)).await?;
+                for webhook in result.webhook_events {
+                    yield webhook;
+                }
+                request.continuation = result.continuation;
+                if request.continuation.is_none() {
+                    break;
+                }
+            }
+        })
     }
 }
