@@ -2,8 +2,9 @@
 
 use clap::{Parser, Subcommand};
 use freta::{
-    argparse::parse_key_val, Client, ClientId, Config, Error, ImageFormat, ImageId, ImageState,
-    OwnerId, Result, Secret,
+    argparse::parse_key_val,
+    models::webhooks::{WebhookEventId, WebhookEventType, WebhookId},
+    Client, ClientId, Config, Error, ImageFormat, ImageId, ImageState, OwnerId, Result, Secret,
 };
 use futures::StreamExt;
 use log::info;
@@ -31,6 +32,7 @@ enum SubCommands {
     Info,
     Images(ImagesCmd),
     Artifacts(ArtifactsCmd),
+    Webhooks(WebhooksCmd),
 }
 
 #[derive(Parser)]
@@ -64,6 +66,79 @@ enum ArtifactsCommands {
     /// List artifacts for an image
     List(SingleImage),
     Get(ArtifactsGet),
+}
+
+#[derive(Parser)]
+// webhooks subcommand
+struct WebhooksCmd {
+    #[clap(subcommand)]
+    webhooks_commands: WebhooksCommands,
+}
+
+#[derive(Subcommand)]
+enum WebhooksCommands {
+    /// Create a new webhook
+    Create(WebhookCreate),
+    /// Delete an existing webhook
+    Delete(SingleWebhook),
+    /// Get an existing webhook
+    Get(SingleWebhook),
+    /// Update an existing webhook
+    Update(WebhookUpdate),
+    /// List existing webhooks
+    List,
+    /// List webhook logs
+    Logs(SingleWebhook),
+    /// Test an existing webhook
+    Ping(SingleWebhook),
+    /// Resend an event to a webhook
+    Resend(WebhookResendOpt),
+}
+
+#[derive(Parser)]
+struct SingleWebhook {
+    /// unique identifier for the webhook
+    webhook_id: WebhookId,
+}
+
+#[derive(Parser)]
+struct WebhookResendOpt {
+    /// unique identifier for the webhook
+    webhook_id: WebhookId,
+
+    /// unique identifier for the webhook event
+    webhook_event_id: WebhookEventId,
+}
+
+#[derive(Parser)]
+struct WebhookCreate {
+    /// webhook url
+    url: Url,
+
+    /// webhook event types to monitor
+    #[clap(required = true)]
+    event_types: Vec<WebhookEventType>,
+
+    #[clap(long)]
+    /// webhook hmsecret
+    hmac_token: Option<Secret>,
+}
+
+#[derive(Parser)]
+struct WebhookUpdate {
+    /// webhook id
+    webhook_id: WebhookId,
+
+    /// webhook url
+    url: Url,
+
+    /// webhook event types to monitor
+    #[clap(required = true)]
+    event_types: Vec<WebhookEventType>,
+
+    #[clap(long)]
+    /// webhook hmsecret
+    hmac_token: Option<Secret>,
 }
 
 #[derive(Parser)]
@@ -198,7 +273,7 @@ struct ConfigCmd {
     api_url: Option<Url>,
 
     #[clap(long)]
-    /// note: use the empty string to remove an exisitng scope
+    /// note: use the empty string to remove an existing scope
     scope: Option<String>,
 }
 
@@ -399,6 +474,72 @@ async fn info() -> Result<()> {
     Ok(())
 }
 
+async fn webhooks(ops: WebhooksCmd) -> Result<()> {
+    let mut client = Client::new().await?;
+    match ops.webhooks_commands {
+        WebhooksCommands::Create(x) => client
+            .webhook_create(x.url, x.event_types.into_iter().collect(), x.hmac_token)
+            .await
+            .map(print_data)?,
+        WebhooksCommands::Delete(x) => client.webhook_delete(x.webhook_id).await.map(print_data)?,
+        WebhooksCommands::Get(x) => client.webhook_get(x.webhook_id).await.map(print_data)?,
+        WebhooksCommands::Ping(x) => {
+            let result = client.webhook_ping(x.webhook_id).await?;
+            io::stdout().write_all(&result).await?;
+            Ok(())
+        }
+        WebhooksCommands::Update(x) => client
+            .webhook_update(
+                x.webhook_id,
+                x.url,
+                x.event_types.into_iter().collect(),
+                x.hmac_token,
+            )
+            .await
+            .map(print_data)?,
+        WebhooksCommands::List => {
+            let mut stream = client.webhooks_list();
+
+            // page through results, and build a WebhooksListResponse-like output
+            // by hand.  This is a bit of a hack, but this allows us to not have
+            // to coalesce all of the webhooks_list calls in memory before
+            // serializing the output.
+            print!("{{\"webhooks\":");
+            let mut ser = serde_json::Serializer::new(std::io::stdout());
+            let mut serializer = ser.serialize_seq(None)?;
+            while let Some(entry) = stream.next().await {
+                let entry = entry?;
+                serializer.serialize_element(&entry)?;
+            }
+            serializer.end()?;
+            println!("}}");
+            Ok(())
+        }
+        WebhooksCommands::Logs(x) => {
+            let mut stream = client.webhooks_logs(x.webhook_id);
+
+            // page through results, and build a WebhookEventListResponse-like output
+            // by hand.  This is a bit of a hack, but this allows us to not have
+            // to coalesce all of the webhooks_logs calls in memory before
+            // serializing the output.
+            print!("{{\"webhook_events\":");
+            let mut ser = serde_json::Serializer::new(std::io::stdout());
+            let mut serializer = ser.serialize_seq(None)?;
+            while let Some(entry) = stream.next().await {
+                let entry = entry?;
+                serializer.serialize_element(&entry)?;
+            }
+            serializer.end()?;
+            println!("}}");
+            Ok(())
+        }
+        WebhooksCommands::Resend(x) => client
+            .webhook_resend(x.webhook_id, x.webhook_event_id)
+            .await
+            .map(print_data)?,
+    }
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
@@ -422,6 +563,9 @@ async fn main() -> Result<()> {
         }
         SubCommands::Artifacts(x) => {
             artifacts(x).await?;
+        }
+        SubCommands::Webhooks(x) => {
+            webhooks(x).await?;
         }
         SubCommands::Eula(x) => {
             eula(x.eula_commands).await?;

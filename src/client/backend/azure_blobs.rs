@@ -5,7 +5,6 @@ use azure_storage_blobs::prelude::*;
 use bytes::Bytes;
 use futures::stream::StreamExt;
 use indicatif::{ProgressBar, ProgressFinish, ProgressStyle};
-use log::debug;
 use std::path::Path;
 use tokio::{
     fs::File,
@@ -14,14 +13,7 @@ use tokio::{
 use url::Url;
 
 /// Upload a file to Azure Blob Storage
-pub(crate) async fn blob_upload<P>(filename: P, sas: Url) -> Result<()>
-where
-    P: AsRef<Path>,
-{
-    let filename = filename.as_ref();
-
-    debug!("uploading {}", filename.display());
-    let mut handle = File::open(filename).await?;
+pub(crate) async fn blob_upload(mut handle: File, sas: Url) -> Result<()> {
     let size = handle.metadata().await?.len();
 
     let block_size = std::cmp::max(1024 * 1024 * 10, size / 50_000);
