@@ -39,6 +39,7 @@ struct Args {
 #[tokio::main]
 async fn main() -> Result<()> {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
+    info!("!----------------------------starting");
     let cmd = Args::parse();
 
     let mut client = Client::new().await?;
@@ -46,12 +47,14 @@ async fn main() -> Result<()> {
     let creds = Arc::new(DefaultAzureCredential::default());
     let compute_client = azure_mgmt_compute::Client::builder(creds).build();
 
+    info!("!----------------------------getting vm information");
     let vm = compute_client
         .virtual_machines_client()
         .get(&cmd.group, &cmd.vm_name, &cmd.subscription_id)
         .into_future()
         .await?;
 
+    info!("!----------------------------got vm information xxxx");
     let mut tags = cmd.tags.unwrap_or_default();
     tags.push(("name".to_string(), cmd.vm_name.clone()));
     tags.push(("group".to_string(), cmd.group.clone()));

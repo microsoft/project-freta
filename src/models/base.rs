@@ -8,7 +8,7 @@ use std::{
     fmt::{Display, Error as FmtError, Formatter},
     str::FromStr,
 };
-use strum_macros::EnumIter;
+use strum_macros::{Display, EnumIter};
 use time::OffsetDateTime;
 use url::Url;
 use uuid::Uuid;
@@ -111,7 +111,7 @@ impl<'de> serde::Deserialize<'de> for OwnerId {
 }
 
 /// State of an Image
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, ValueEnum, Eq)]
+#[derive(Display, Debug, Serialize, Deserialize, PartialEq, Clone, ValueEnum, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum ImageState {
     /// The service has not received notification the upload has completed

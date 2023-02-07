@@ -1,15 +1,25 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
+mod freta_io;
+use clap::{Parser, Subcommand, ValueEnum};
 
-use clap::{Parser, Subcommand};
 use freta::{
     argparse::parse_key_val,
     models::webhooks::{WebhookEventId, WebhookEventType, WebhookId},
     Client, ClientId, Config, Error, ImageFormat, ImageId, ImageState, OwnerId, Result, Secret,
 };
+use freta_io::{
+    csv::{artifact_list_to_csv, image_list_to_csv},
+    json::{artifact_list_to_json, image_list_to_json},
+    table::{artifact_list_to_table, image_list_to_table},
+};
 use futures::StreamExt;
 use log::info;
-use serde::ser::{SerializeSeq, Serializer};
-use std::{path::PathBuf, str::FromStr};
+use serde::{
+    ser::{SerializeSeq, Serializer},
+    Deserialize, Serialize,
+};
+use std::path::PathBuf;
+use strum_macros::Display;
 use tokio::io::{self, AsyncWriteExt};
 use url::Url;
 
@@ -20,6 +30,13 @@ pub const LICENSES: &str = include_str!("../../extra/licenses.json");
 struct Args {
     #[command(subcommand)]
     subcommand: SubCommands,
+}
+
+#[derive(Display, Debug, Serialize, Deserialize, PartialEq, Clone, ValueEnum, Eq)]
+pub enum OutputFormat {
+    Json,
+    Table,
+    CSV,
 }
 
 #[derive(Subcommand)]
@@ -64,7 +81,7 @@ struct ArtifactsCmd {
 #[derive(Subcommand)]
 enum ArtifactsCommands {
     /// List artifacts for an image
-    List(SingleImage),
+    List(ArtifactListOpts),
     Get(ArtifactsGet),
 }
 
@@ -181,6 +198,17 @@ struct ImagesCreateOpts {
 }
 
 #[derive(Parser, Clone)]
+pub struct ArtifactListOpts {
+    #[arg(long)]
+    /// image id
+    pub image_id: ImageId,
+
+    #[arg(long)]
+    /// print in table mode
+    pub format: Option<OutputFormat>,
+}
+
+#[derive(Parser, Clone)]
 /// list images
 pub struct ImageListOpts {
     #[arg(long)]
@@ -194,6 +222,10 @@ pub struct ImageListOpts {
     #[arg(long)]
     /// state
     pub state: Option<ImageState>,
+
+    #[arg(long)]
+    /// print in table mode
+    pub format: Option<OutputFormat>,
 
     #[arg(long)]
     /// include sample images
@@ -326,16 +358,12 @@ async fn artifacts(opts: ArtifactsCmd) -> Result<()> {
     match opts.artifacts_commands {
         ArtifactsCommands::List(opts) => {
             let mut stream = client.artifacts_list(opts.image_id);
-            // page through results, and build a JSON output by hand.  This is a
-            // bit of a hack, but this allows us to not have to coalesce all of
-            // the images_list calls in memory before serializing the output.
-            let mut ser = serde_json::Serializer::new(std::io::stdout());
-            let mut serializer = ser.serialize_seq(None)?;
-            while let Some(name) = stream.next().await {
-                let name = name?;
-                serializer.serialize_element(&name)?;
+
+            match opts.format {
+                Some(OutputFormat::Table) => artifact_list_to_table(&mut stream).await?,
+                Some(OutputFormat::CSV) => artifact_list_to_csv(&mut stream).await?,
+                _ => artifact_list_to_json(&mut stream).await?,
             }
-            serializer.end()?;
         }
         ArtifactsCommands::Get(opts) => {
             if let Some(output) = &opts.output {
@@ -375,19 +403,11 @@ async fn images(images_opts: ImagesCmd) -> Result<()> {
                 image_list.include_samples,
             );
 
-            // page through results, and build a ImagesListResponse-like output
-            // by hand.  This is a bit of a hack, but this allows us to not have
-            // to coalesce all of the images_list calls in memory before
-            // serializing the output.
-            print!("{{\"images\":");
-            let mut ser = serde_json::Serializer::new(std::io::stdout());
-            let mut serializer = ser.serialize_seq(None)?;
-            while let Some(image) = stream.next().await {
-                let image = image?;
-                serializer.serialize_element(&image)?;
+            match image_list.format {
+                Some(OutputFormat::Table) => image_list_to_table(&mut stream).await?,
+                Some(OutputFormat::CSV) => image_list_to_csv(&mut stream).await?,
+                _ => image_list_to_json(&mut stream).await?,
             }
-            serializer.end()?;
-            println!("}}");
             Ok(())
         }
         ImagesCommands::Delete(image_delete) => client
@@ -411,7 +431,8 @@ async fn images(images_opts: ImagesCmd) -> Result<()> {
                 format
             } else if let Some(ext) = opts.file.extension() {
                 let ext_str = ext.to_string_lossy().to_lowercase();
-                ImageFormat::from_str(&ext_str).map_err(|_| Error::Extension(ext_str.into()))?
+                ImageFormat::from_str(&ext_str, true)
+                    .map_err(|_| Error::Extension(ext_str.into()))?
             } else {
                 return Err(Error::Extension("missing file extension".into()));
             };
