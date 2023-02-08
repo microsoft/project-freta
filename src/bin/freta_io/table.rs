@@ -6,7 +6,7 @@ use futures::{Stream, StreamExt};
 
 use freta::{Image, Result};
 
-pub async fn image_list_to_table(
+pub async fn from_images(
     stream: &mut Pin<Box<impl Stream<Item = std::result::Result<Image, crate::Error>>>>,
 ) -> Result<()> {
     let mut table: Vec<Vec<CellStruct>> = Vec::new();
@@ -33,7 +33,7 @@ pub async fn image_list_to_table(
     Ok(())
 }
 
-pub async fn artifact_list_to_table(
+pub async fn from_artifacts(
     stream: &mut Pin<Box<impl Stream<Item = std::result::Result<String, crate::Error>>>>,
 ) -> Result<()> {
     let mut table: Vec<Vec<CellStruct>> = Vec::new();

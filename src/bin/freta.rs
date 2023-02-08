@@ -8,9 +8,9 @@ use freta::{
     Client, ClientId, Config, Error, ImageFormat, ImageId, ImageState, OwnerId, Result, Secret,
 };
 use freta_io::{
-    csv::{artifact_list_to_csv, image_list_to_csv},
-    json::{artifact_list_to_json, image_list_to_json},
-    table::{artifact_list_to_table, image_list_to_table},
+    csv::{from_artifacts as csv_from_artifacts, from_images as csv_from_images},
+    json::{from_artifacts as json_from_artifacts, from_images as json_from_images},
+    table::{from_artifacts as table_from_artifacts, from_images as table_from_images},
 };
 use futures::StreamExt;
 use log::info;
@@ -360,9 +360,9 @@ async fn artifacts(opts: ArtifactsCmd) -> Result<()> {
             let mut stream = client.artifacts_list(opts.image_id);
 
             match opts.format {
-                Some(OutputFormat::Table) => artifact_list_to_table(&mut stream).await?,
-                Some(OutputFormat::CSV) => artifact_list_to_csv(&mut stream).await?,
-                _ => artifact_list_to_json(&mut stream).await?,
+                Some(OutputFormat::Table) => table_from_artifacts(&mut stream).await?,
+                Some(OutputFormat::CSV) => csv_from_artifacts(&mut stream).await?,
+                _ => json_from_artifacts(&mut stream).await?,
             }
         }
         ArtifactsCommands::Get(opts) => {
@@ -404,9 +404,9 @@ async fn images(images_opts: ImagesCmd) -> Result<()> {
             );
 
             match image_list.format {
-                Some(OutputFormat::Table) => image_list_to_table(&mut stream).await?,
-                Some(OutputFormat::CSV) => image_list_to_csv(&mut stream).await?,
-                _ => image_list_to_json(&mut stream).await?,
+                Some(OutputFormat::Table) => table_from_images(&mut stream).await?,
+                Some(OutputFormat::CSV) => csv_from_images(&mut stream).await?,
+                _ => json_from_images(&mut stream).await?,
             }
             Ok(())
         }

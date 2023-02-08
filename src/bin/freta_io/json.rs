@@ -6,7 +6,7 @@ use serde::ser::{SerializeSeq, Serializer};
 
 use freta::{Image, Result};
 
-pub async fn image_list_to_json(
+pub async fn from_images(
     stream: &mut Pin<Box<impl Stream<Item = std::result::Result<Image, crate::Error>>>>,
 ) -> Result<()> {
     // page through results, and build a ImagesListResponse-like output (JSON)
@@ -25,7 +25,7 @@ pub async fn image_list_to_json(
     Ok(())
 }
 
-pub async fn artifact_list_to_json(
+pub async fn from_artifacts(
     stream: &mut Pin<Box<impl Stream<Item = std::result::Result<String, crate::Error>>>>,
 ) -> Result<()> {
     // page through results, and build a JSON output by hand.  This is a
