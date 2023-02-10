@@ -1,3 +1,5 @@
+// Copyright (C) Microsoft Corporation. All rights reserved.
+
 use crate::{
     models::webhooks::{Webhook, WebhookEventId, WebhookEventType, WebhookLog},
     Secret,

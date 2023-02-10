@@ -1,3 +1,5 @@
+// Copyright (C) Microsoft Corporation. All rights reserved.
+
 /// An example receiver for Freta webhook events
 ///
 /// This example shows how to receive webhook events from Freta, and depending

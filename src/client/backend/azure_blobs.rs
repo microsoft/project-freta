@@ -84,8 +84,35 @@ where
     Ok(blob)
 }
 
+/// Download the contents of the specified blob to a file with a blob sas URL
+pub(crate) async fn blob_download<P>(blob_url: &Url, filename: P) -> Result<()>
+where
+    P: AsRef<Path>,
+{
+    let filename = filename.as_ref();
+    let blob_client = BlobClient::from_sas_url(blob_url)?;
+    let mut stream = blob_client.get().into_stream();
+
+    let mut file = File::create(filename).await?;
+    while let Some(chunk) = stream.next().await {
+        let chunk = chunk?;
+        let mut body = chunk.data;
+
+        while let Some(value) = body.next().await {
+            let value = value?;
+            file.write_all(&value).await?;
+        }
+    }
+
+    Ok(())
+}
+
 /// Download the contents of the specified blob to a file
-pub(crate) async fn blob_download<P, N>(container_sas: &Url, name: N, filename: P) -> Result<()>
+pub(crate) async fn container_blob_download<P, N>(
+    container_sas: &Url,
+    name: N,
+    filename: P,
+) -> Result<()>
 where
     P: AsRef<Path>,
     N: Into<String>,

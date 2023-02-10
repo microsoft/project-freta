@@ -239,17 +239,6 @@
     },
     "Checks": {
       "type": "object",
-      "required": [
-        "duplicate_credentials",
-        "duplicate_imports",
-        "file_handlers",
-        "functions",
-        "idt",
-        "netfilter_issues",
-        "syscalls",
-        "unexpected_module_notifiers",
-        "unlinked_modules"
-      ],
       "properties": {
         "duplicate_credentials": {
           "type": "array",
@@ -1922,7 +1911,6 @@
         "env",
         "files",
         "inet_sockets",
-        "mapped_files",
         "max_fds",
         "pagetables",
         "pgd",
