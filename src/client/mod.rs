@@ -12,7 +12,9 @@ pub(crate) mod error;
 use crate::{
     client::{
         backend::{
-            azure_blobs::{blob_download, blob_get, blob_upload, container_client},
+            azure_blobs::{
+                blob_download, blob_get, blob_upload, container_blob_download, container_client,
+            },
             Backend,
         },
         error::{Error, Result},
@@ -332,6 +334,41 @@ impl Client {
         Ok(res)
     }
 
+    /// Download an image to a file
+    ///
+    /// NOTE: The service only allows downloading images that have been analyzed
+    /// successfully.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error in the follow cases:
+    /// 1. The user does not have permission to access the specified image
+    /// 2. The image was not successfully analyzed
+    /// 3. Downloading the image fails
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use freta::{Client, Result, ImageId};
+    /// # async fn example(mut client: Client, image_id: ImageId) -> Result<()> {
+    /// client.images_download(image_id, "/tmp/image.lime").await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn images_download<P>(&mut self, image_id: ImageId, output: P) -> Result<()>
+    where
+        P: AsRef<Path>,
+    {
+        let image = self.images_get(image_id).await?;
+        let Some(image_url) = image.image_url else {
+                return Err(Error::InvalidResponse(
+                    "service did not provide image_url in the response"
+                ))
+        };
+        blob_download(&image_url, output).await?;
+        Ok(())
+    }
+
     /// Get the SAS URL for the Azure Storage container for artifacts extracted
     /// from the image
     ///
@@ -450,7 +487,7 @@ impl Client {
         N: Into<String>,
     {
         let url = self.artifacts_get_sas(image_id).await?;
-        blob_download(&url, name, output).await?;
+        container_blob_download(&url, name, output).await?;
         Ok(())
     }
 

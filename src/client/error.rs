@@ -45,6 +45,10 @@ pub enum Error {
     #[error("azure error")]
     Azure(#[from] azure_core::Error),
 
+    /// There was an error serializing to CSV
+    #[error("csv serialization error")]
+    CSV(#[from] csv::Error),
+
     /// HTTP error
     #[error(transparent)]
     Request(#[from] reqwest::Error),
