@@ -124,8 +124,12 @@ enum SubCommands {
         /// eula specific subcommands
         subcommands: EulaCommands,
     },
-    /// Update the client configuration
-    Config(ConfigCmd),
+    /// interact with the client config
+    Config {
+        #[clap(subcommand)]
+        /// config specific subcommands
+        subcommands: ConfigCommands,
+    },
     /// Login to the service
     Login,
     /// Logout of the service
@@ -365,77 +369,93 @@ enum ImagesCommands {
     },
 }
 
-#[derive(Parser)]
-/// config
-struct ConfigCmd {
-    #[clap(long)]
+/// Config specific subcommands
+#[derive(Subcommand)]
+enum ConfigCommands {
     /// reset configuration to default
-    reset: bool,
+    Reset,
+    /// get the current configuration
+    Get,
+    /// update the current configuration
+    Update {
+        #[clap(long)]
+        /// azure tenant id (used when specifying a service principal)
+        tenant_id: Option<String>,
 
-    #[clap(long)]
-    /// azure tenant id (used when specifying a service principal)
-    tenant_id: Option<String>,
+        #[clap(long)]
+        /// client id (Used when specifying a service principal)
+        client_id: Option<String>,
 
-    #[clap(long)]
-    /// client id (Used when specifying a service principal)
-    client_id: Option<String>,
+        #[clap(long)]
+        /// client secret (used when specifying a service principal) Note: use the
+        /// empty string to remove an existing client secret
+        client_secret: Option<String>,
 
-    #[clap(long)]
-    /// client secret (used when specifying a service principal) Note: use the
-    /// empty string to remove an existing client secret
-    client_secret: Option<String>,
+        #[clap(long)]
+        /// alternate Freta instance URL
+        api_url: Option<Url>,
 
-    #[clap(long)]
-    /// alternate Freta instance URL
-    api_url: Option<Url>,
-
-    #[clap(long)]
-    /// alternate Scope for the Azure Identity request.  note: use the empty string to remove an existing scope
-    scope: Option<String>,
+        #[clap(long)]
+        /// alternate Scope for the Azure Identity request.  note: use the empty string to remove an existing scope
+        scope: Option<String>,
+    },
 }
 
-/// Update and write a `Config`
-async fn set_config(config_opts: ConfigCmd) -> Result<()> {
-    let config = if config_opts.reset {
-        Config::new()?
-    } else {
-        let mut config = Config::load_or_default().await?;
-
-        if let Some(tenant_id) = config_opts.tenant_id {
-            config.tenant_id = tenant_id;
+/// implementation for config specific subcommands
+async fn config(subcommands: ConfigCommands) -> Result<()> {
+    let config = match subcommands {
+        ConfigCommands::Reset => {
+            let config = Config::new()?;
+            config.save().await?;
+            info!("config reset");
+            config
         }
+        ConfigCommands::Get => Config::load_or_default().await?,
+        ConfigCommands::Update {
+            tenant_id,
+            client_id,
+            client_secret,
+            api_url,
+            scope,
+        } => {
+            let mut config = Config::load_or_default().await?;
 
-        if let Some(api_url) = config_opts.api_url {
-            config.api_url = api_url;
-        }
-
-        if let Some(client_id) = config_opts.client_id {
-            config.client_id = ClientId::new(client_id);
-        }
-
-        // if the client_secret is an empty string, unset the client_secret in the config
-        if let Some(scope) = config_opts.scope {
-            if scope.is_empty() {
-                config.scope = None;
-            } else {
-                config.scope = Some(scope);
+            if let Some(tenant_id) = tenant_id {
+                config.tenant_id = tenant_id;
             }
-        }
 
-        // if the client_secret is an empty string, unset the client_secret in the config
-        if let Some(client_secret) = config_opts.client_secret {
-            if client_secret.is_empty() {
-                config.client_secret = None;
-            } else {
-                config.client_secret = Some(Secret::new(client_secret));
+            if let Some(api_url) = api_url {
+                config.api_url = api_url;
             }
+
+            if let Some(client_id) = client_id {
+                config.client_id = ClientId::new(client_id);
+            }
+
+            // if the scope is an empty string, unset the client_secret in the config
+            if let Some(scope) = scope {
+                if scope.is_empty() {
+                    config.scope = None;
+                } else {
+                    config.scope = Some(scope);
+                }
+            }
+
+            // if the client_secret is an empty string, unset the client_secret in the config
+            if let Some(client_secret) = client_secret {
+                if client_secret.is_empty() {
+                    config.client_secret = None;
+                } else {
+                    config.client_secret = Some(Secret::new(client_secret));
+                }
+            }
+            config.save().await?;
+            info!("config updated");
+            config
         }
-        config
     };
+    println!("{config}");
 
-    config.save().await?;
-
-    info!("config saved: {:?}", config);
     Ok(())
 }
 
@@ -813,8 +833,8 @@ async fn main() -> Result<()> {
 
     let cmd = Args::parse();
     match cmd.subcommand {
-        SubCommands::Config(config_ops) => {
-            set_config(config_ops).await?;
+        SubCommands::Config { subcommands } => {
+            config(subcommands).await?;
         }
         SubCommands::Login => {
             Client::new().await?;

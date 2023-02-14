@@ -1,9 +1,12 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 
-use crate::{Error, Result};
+use crate::{client::backend::Backend, Error, Result};
 use home::home_dir;
 use serde::{Deserialize, Serialize};
-use std::{fmt, path::PathBuf};
+use std::{
+    fmt::{self, Display},
+    path::PathBuf,
+};
 use tokio::fs;
 use url::Url;
 
@@ -105,6 +108,14 @@ impl fmt::Debug for Config {
     }
 }
 
+/// Implement `Display` for the Config as `Debug` for now
+impl Display for Config {
+    #[allow(clippy::use_debug)]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(self, f)
+    }
+}
+
 impl Config {
     /// Create a new `Config` with the default values
     ///
@@ -172,6 +183,10 @@ impl Config {
 
     /// Save the user's configuration to `~/.config/freta/cli.config`
     ///
+    /// At the moment, client configuration only includes login configuration
+    /// information.  Therefore, on any change, log the user out and log them
+    /// back in.
+    ///
     /// # Errors
     /// This will return an error if the configuration file cannot be saved
     pub async fn save(&self) -> Result<()> {
@@ -179,6 +194,7 @@ impl Config {
         let path = Self::get_path()?;
         let contents = serde_json::to_string_pretty(self)?;
         fs::write(&path, contents).await?;
+        Backend::logout().await?;
         Ok(())
     }
 
