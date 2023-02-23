@@ -245,7 +245,7 @@ impl Auth {
 
     /// Save the authentication to disk.
     async fn save(&self, config: &Config) -> Result<()> {
-        if config.ignore_login_cache {
+        if !config.ignore_login_cache {
             let path = Self::get_path()?;
             let contents = serde_json::to_string_pretty(self)?;
             fs::write(&path, contents).await?;
