@@ -51,8 +51,10 @@ impl Auth {
             return Ok(Self::new_without_auth());
         }
 
-        if let Some(entry) = Self::new_from_cache(config).await? {
-            return Ok(entry);
+        if !config.ignore_login_cache {
+            if let Some(entry) = Self::new_from_cache(config).await? {
+                return Ok(entry);
+            }
         }
 
         Self::new_without_cache(config).await
@@ -87,7 +89,7 @@ impl Auth {
             Self::with_service(config).await?
         };
 
-        auth.save().await?;
+        auth.save(config).await?;
         Ok(auth)
     }
 
@@ -204,7 +206,7 @@ impl Auth {
                 let token = Self::with_client_secret(config, secret).await?;
                 self.token = token.token;
                 self.expires_on = token.expires_on;
-                self.save().await?;
+                self.save(config).await?;
             }
             TokenType::DeviceCode((_, refresh_token)) => {
                 let token = match self.refresh_device_code(config, refresh_token).await {
@@ -216,7 +218,7 @@ impl Auth {
                 };
                 self.token = token.token;
                 self.expires_on = token.expires_on;
-                self.save().await?;
+                self.save(config).await?;
             }
             TokenType::None => {}
         }
@@ -242,10 +244,12 @@ impl Auth {
     }
 
     /// Save the authentication to disk.
-    async fn save(&self) -> Result<()> {
-        let path = Self::get_path()?;
-        let contents = serde_json::to_string_pretty(self)?;
-        fs::write(&path, contents).await?;
+    async fn save(&self, config: &Config) -> Result<()> {
+        if config.ignore_login_cache {
+            let path = Self::get_path()?;
+            let contents = serde_json::to_string_pretty(self)?;
+            fs::write(&path, contents).await?;
+        }
         Ok(())
     }
 

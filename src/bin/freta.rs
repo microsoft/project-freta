@@ -80,7 +80,7 @@ use tokio::io::{self, AsyncWriteExt};
 use url::Url;
 
 /// Third-party library license details
-const LICENSES: &str = include_str!("../../extra/licenses.json");
+const LICENSES: &str = include_str!(concat!(env!("OUT_DIR"), "/licenses.json"));
 
 /// The default fields for image list output used in `CSV` and `Table` format
 const IMAGE_LIST_FIELDS: &[&str] = &["image_id", "owner_id", "state", "format"];
@@ -387,7 +387,7 @@ enum ConfigCommands {
         client_id: Option<String>,
 
         #[clap(long)]
-        /// client secret (used when specifying a service principal) Note: use the
+        /// client secret (used when specifying a service principal).  Use an
         /// empty string to remove an existing client secret
         client_secret: Option<String>,
 
@@ -396,8 +396,13 @@ enum ConfigCommands {
         api_url: Option<Url>,
 
         #[clap(long)]
-        /// alternate Scope for the Azure Identity request.  note: use the empty string to remove an existing scope
+        /// alternate Scope for the Azure Identity request.  Use an empty string
+        /// to remove an existing scope
         scope: Option<String>,
+
+        #[clap(long)]
+        /// do not load or save cached login tokens
+        ignore_login_cache: Option<bool>,
     },
 }
 
@@ -417,6 +422,7 @@ async fn config(subcommands: ConfigCommands) -> Result<()> {
             client_secret,
             api_url,
             scope,
+            ignore_login_cache,
         } => {
             let mut config = Config::load_or_default().await?;
 
@@ -449,6 +455,11 @@ async fn config(subcommands: ConfigCommands) -> Result<()> {
                     config.client_secret = Some(Secret::new(client_secret));
                 }
             }
+
+            if let Some(ignore_login_cache) = ignore_login_cache {
+                config.ignore_login_cache = ignore_login_cache;
+            }
+
             config.save().await?;
             info!("config updated");
             config
@@ -461,7 +472,7 @@ async fn config(subcommands: ConfigCommands) -> Result<()> {
 
 /// Artifact specific subcommands
 async fn artifacts(subcommands: ArtifactsCommands) -> Result<()> {
-    let mut client = Client::new().await?;
+    let client = Client::new().await?;
     match subcommands {
         ArtifactsCommands::List { image_id, output } => {
             let stream = client.artifacts_list(image_id);
@@ -485,7 +496,7 @@ async fn artifacts(subcommands: ArtifactsCommands) -> Result<()> {
 
 /// Images specific subcommands
 async fn images(subcommands: ImagesCommands) -> Result<()> {
-    let mut client = Client::new().await?;
+    let client = Client::new().await?;
     match subcommands {
         ImagesCommands::Get { image_id } => client.images_get(image_id).await.map(print_data)?,
         ImagesCommands::List {
@@ -567,7 +578,7 @@ async fn images(subcommands: ImagesCommands) -> Result<()> {
 /// 2. Writing the EULA to the stdout fails
 /// 3. Sending the acceptance or rejection of the EULA to the service fails
 async fn eula(opts: EulaCommands) -> Result<()> {
-    let mut client = Client::new().await?;
+    let client = Client::new().await?;
     match opts {
         EulaCommands::Get => {
             let eula = client.eula().await?;
@@ -593,7 +604,7 @@ async fn eula(opts: EulaCommands) -> Result<()> {
 
 /// Request basic service information
 async fn info() -> Result<()> {
-    let mut client = Client::new().await?;
+    let client = Client::new().await?;
     let info = client.info().await?;
     let as_str = serde_json::to_string_pretty(&info)?;
     println!("{as_str}");
@@ -603,7 +614,7 @@ async fn info() -> Result<()> {
 
 /// Webhook specific subcommands
 async fn webhooks(subcommands: WebhooksCommands) -> Result<()> {
-    let mut client = Client::new().await?;
+    let client = Client::new().await?;
     match subcommands {
         WebhooksCommands::Create {
             url,

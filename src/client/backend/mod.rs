@@ -17,6 +17,7 @@ use bytes::Bytes;
 use log::trace;
 use reqwest::ClientBuilder;
 use serde::{de::DeserializeOwned, Serialize};
+use tokio::sync::Mutex;
 
 #[derive(Debug)]
 /// REST API client implementation
@@ -26,18 +27,16 @@ pub(crate) struct Backend {
     /// http client
     http_client: reqwest::Client,
     /// backend authentication information
-    auth: Auth,
+    auth: Mutex<Auth>,
 }
 
 impl Backend {
     /// Create a new backend client
-    pub(crate) async fn new() -> Result<Self> {
-        let config = Config::load_or_default().await?;
-
+    pub(crate) async fn new(config: Config) -> Result<Self> {
         let http_client = ClientBuilder::new()
             .user_agent(format!("{SDK_NAME}/{SDK_VERSION}"))
             .build()?;
-        let auth = Auth::new(&config).await?;
+        let auth = Mutex::new(Auth::new(&config).await?);
 
         Ok(Self {
             config,
@@ -54,7 +53,7 @@ impl Backend {
 
     /// send the request to the backend and return the results in `Bytes`
     async fn execute_raw<Q>(
-        &mut self,
+        &self,
         method: reqwest::Method,
         path: &str,
         query: Option<Q>,
@@ -76,7 +75,12 @@ impl Backend {
 
         let mut builder = self.http_client.clone().request(method, url);
 
-        if let Some(token) = self.auth.get_token(&self.config).await? {
+        // lock self.auth while getting an auth token
+        let token = {
+            let mut auth = self.auth.lock().await;
+            auth.get_token(&self.config).await?
+        };
+        if let Some(token) = token {
             builder = builder.bearer_auth(token.secret());
         }
 
@@ -102,7 +106,7 @@ impl Backend {
 
     /// send the request to the backend and deserialize the response as JSON
     async fn execute<Q, R>(
-        &mut self,
+        &self,
         method: reqwest::Method,
         path: &str,
         query: Option<Q>,
@@ -118,7 +122,7 @@ impl Backend {
     }
 
     /// Send a GET request to the backend, but return the results in `Bytes`
-    pub(crate) async fn get_raw<Q>(&mut self, path: &str, query: Option<Q>) -> Result<Bytes>
+    pub(crate) async fn get_raw<Q>(&self, path: &str, query: Option<Q>) -> Result<Bytes>
     where
         Q: Serialize,
     {
@@ -127,7 +131,7 @@ impl Backend {
     }
 
     /// Send a GET request to the backend
-    pub(crate) async fn get<Q, R>(&mut self, path: &str, query: Option<Q>) -> Result<R>
+    pub(crate) async fn get<Q, R>(&self, path: &str, query: Option<Q>) -> Result<R>
     where
         Q: Serialize,
         R: DeserializeOwned,
@@ -136,7 +140,7 @@ impl Backend {
     }
 
     /// Send a PATCH request to the backend but do not deserialize the response.
-    pub(crate) async fn patch_raw<Q>(&mut self, path: &str, body: Q) -> Result<Bytes>
+    pub(crate) async fn patch_raw<Q>(&self, path: &str, body: Q) -> Result<Bytes>
     where
         Q: Serialize,
     {
@@ -145,7 +149,7 @@ impl Backend {
     }
 
     /// Send a POST request to the backend.
-    pub(crate) async fn post<Q, R>(&mut self, path: &str, body: Q) -> Result<R>
+    pub(crate) async fn post<Q, R>(&self, path: &str, body: Q) -> Result<R>
     where
         Q: Serialize,
         R: DeserializeOwned,
@@ -155,7 +159,7 @@ impl Backend {
     }
 
     /// Send a DELETE request to the backend.
-    pub(crate) async fn delete<R>(&mut self, path: &str) -> Result<R>
+    pub(crate) async fn delete<R>(&self, path: &str) -> Result<R>
     where
         R: DeserializeOwned,
     {
@@ -164,7 +168,7 @@ impl Backend {
     }
 
     /// Send a PATCH request to the backend.
-    pub(crate) async fn patch<Q, R>(&mut self, path: &str, body: Q) -> Result<R>
+    pub(crate) async fn patch<Q, R>(&self, path: &str, body: Q) -> Result<R>
     where
         Q: Serialize,
         R: DeserializeOwned,

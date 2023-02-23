@@ -17,6 +17,7 @@ use crate::{
             },
             Backend,
         },
+        config::Config,
         error::{Error, Result},
     },
     models::{
@@ -79,7 +80,17 @@ impl Client {
     /// This function will return an error if creating the backend REST API
     /// client fails
     pub async fn new() -> Result<Self> {
-        let backend = Backend::new().await?;
+        Self::with_config(Config::load_or_default().await?).await
+    }
+
+    /// Create a new client for the Freta service with a configuration
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if creating the backend REST API
+    /// client fails
+    pub async fn with_config(config: Config) -> Result<Self> {
+        let backend = Backend::new(config).await?;
         Ok(Self { backend })
     }
 
@@ -100,7 +111,7 @@ impl Client {
     /// This function will return an error in the following conditions:
     /// 1. The connection to the Service fails
     /// 2. The user does not have permission to get their configuration
-    pub async fn user_config_get(&mut self) -> Result<UserConfig> {
+    pub async fn user_config_get(&self) -> Result<UserConfig> {
         let res = self.backend.get("/api/users", None::<String>).await?;
         Ok(res)
     }
@@ -113,7 +124,7 @@ impl Client {
     /// 1. The connection to the Service fails
     /// 2. The user does not have permission to update their configuration
     pub async fn user_config_update(
-        &mut self,
+        &self,
         eula_accepted: Option<String>,
         include_samples: bool,
     ) -> Result<UserConfigUpdateResponse> {
@@ -134,7 +145,7 @@ impl Client {
     ///
     /// This function will return an error in the following conditions:
     /// 1. The connection to the Service fails
-    pub async fn eula(&mut self) -> Result<Bytes> {
+    pub async fn eula(&self) -> Result<Bytes> {
         let res = self.backend.get_raw("/api/eula", None::<String>).await?;
         Ok(res)
     }
@@ -146,7 +157,7 @@ impl Client {
     /// This function will return an error in the following conditions:
     /// 1. The connection to the Service fails
     /// 2. The user does not have permission to get the service information
-    pub async fn info(&mut self) -> Result<Info> {
+    pub async fn info(&self) -> Result<Info> {
         let res = self.backend.get("/api/info", None::<String>).await?;
         Ok(res)
     }
@@ -158,7 +169,7 @@ impl Client {
     /// ```rust,no_run
     /// use futures::StreamExt;
     /// # use freta::{Client, Result};
-    /// # async fn example(mut client: Client) -> Result<()> {
+    /// # async fn example(client: Client) -> Result<()> {
     /// let mut stream = client.images_list(None, None, None, true);
     /// while let Some(image) = stream.next().await {
     ///     let image = image?;
@@ -174,7 +185,7 @@ impl Client {
     /// 1. The connection to the Service fails
     /// 2. The user does not have permission
     pub fn images_list(
-        &mut self,
+        &self,
         image_id: Option<ImageId>,
         owner_id: Option<OwnerId>,
         state: Option<ImageState>,
@@ -213,7 +224,7 @@ impl Client {
     /// This function will return an error in the following conditions:
     /// 1. The connection to the Service fails
     /// 2. The user does not have permission to create images.
-    pub async fn images_create<T, K, V>(&mut self, format: ImageFormat, tags: T) -> Result<Image>
+    pub async fn images_create<T, K, V>(&self, format: ImageFormat, tags: T) -> Result<Image>
     where
         T: IntoIterator<Item = (K, V)>,
         K: Into<String>,
@@ -233,7 +244,7 @@ impl Client {
     /// 1. Creating the image in Freta fails
     /// 2. Uploading the blob to Azure Storage fails
     pub async fn images_upload<P, T, K, V>(
-        &mut self,
+        &self,
         format: ImageFormat,
         tags: T,
         path: P,
@@ -266,7 +277,7 @@ impl Client {
     /// This function will return an error in the following conditions:
     /// 1. The connection to the Service fails
     /// 2. The user does not have permission to read the specified image
-    pub async fn images_get(&mut self, image_id: ImageId) -> Result<Image> {
+    pub async fn images_get(&self, image_id: ImageId) -> Result<Image> {
         let res = self
             .backend
             .get(&format!("/api/images/{image_id}"), None::<bool>)
@@ -281,7 +292,7 @@ impl Client {
     /// This function will return an error in the following conditions:
     /// 1. The connection to the Service fails
     /// 2. The user does not have permission to delete the specified image
-    pub async fn images_delete(&mut self, image_id: ImageId) -> Result<ImageDeleteResponse> {
+    pub async fn images_delete(&self, image_id: ImageId) -> Result<ImageDeleteResponse> {
         let res = self
             .backend
             .delete(&format!("/api/images/{image_id}"))
@@ -300,7 +311,7 @@ impl Client {
     /// 1. The connection to the Service fails
     /// 2. The user does not have permission to update metadata for the specified image
     pub async fn images_update<T, K, V>(
-        &mut self,
+        &self,
         image_id: ImageId,
         tags: Option<T>,
         shareable: Option<bool>,
@@ -326,7 +337,7 @@ impl Client {
     /// This function will return an error in the following conditions:
     /// 1. The connection to the Service fails
     /// 2. The user does not have permission to reanalyze the specified image
-    pub async fn images_reanalyze(&mut self, image_id: ImageId) -> Result<ImageReanalyzeResponse> {
+    pub async fn images_reanalyze(&self, image_id: ImageId) -> Result<ImageReanalyzeResponse> {
         let res = self
             .backend
             .patch(&format!("/api/images/{image_id}"), None::<bool>)
@@ -350,12 +361,12 @@ impl Client {
     ///
     /// ```rust,no_run
     /// # use freta::{Client, Result, ImageId};
-    /// # async fn example(mut client: Client, image_id: ImageId) -> Result<()> {
+    /// # async fn example(client: Client, image_id: ImageId) -> Result<()> {
     /// client.images_download(image_id, "/tmp/image.lime").await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn images_download<P>(&mut self, image_id: ImageId, output: P) -> Result<()>
+    pub async fn images_download<P>(&self, image_id: ImageId, output: P) -> Result<()>
     where
         P: AsRef<Path>,
     {
@@ -379,7 +390,7 @@ impl Client {
     /// 2. The image metadata in the service is missing `artifacts_url` which
     ///    should always be returned when getting the metadata for a single
     ///    image.
-    async fn artifacts_get_sas(&mut self, image_id: ImageId) -> Result<Url> {
+    async fn artifacts_get_sas(&self, image_id: ImageId) -> Result<Url> {
         let image = self.images_get(image_id).await?;
         let Some(image_url) = image.artifacts_url else {
                 return Err(Error::InvalidResponse(
@@ -403,7 +414,7 @@ impl Client {
     /// ```rust,no_run
     /// use futures::StreamExt;
     /// # use freta::{Client, ImageFormat::Lime, ImageId, Result};
-    /// # async fn example(mut client: Client, image_id: ImageId) -> Result<()> {
+    /// # async fn example(client: Client, image_id: ImageId) -> Result<()> {
     /// let mut stream = client.artifacts_list(image_id);
     /// while let Some(entry) = stream.next().await {
     ///     let entry = entry?;
@@ -413,7 +424,7 @@ impl Client {
     /// # }
     /// ```
     pub fn artifacts_list(
-        &mut self,
+        &self,
         image_id: ImageId,
     ) -> Pin<Box<impl Stream<Item = std::result::Result<String, crate::Error>> + Send + '_>> {
         Box::pin(async_stream::try_stream! {
@@ -443,12 +454,12 @@ impl Client {
     ///
     /// ```rust,no_run
     /// # use freta::{Client, Result, ImageId};
-    /// # async fn example(mut client: Client, image_id: ImageId) -> Result<()> {
+    /// # async fn example(client: Client, image_id: ImageId) -> Result<()> {
     /// let report = client.artifacts_get(image_id, "report.json").await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn artifacts_get<N>(&mut self, image_id: ImageId, name: N) -> Result<Vec<u8>>
+    pub async fn artifacts_get<N>(&self, image_id: ImageId, name: N) -> Result<Vec<u8>>
     where
         N: Into<String>,
     {
@@ -469,7 +480,7 @@ impl Client {
     ///
     /// ```rust,no_run
     /// # use freta::{Client, ImageFormat::Lime, Result, ImageId};
-    /// # async fn example(mut client: Client, image_id: ImageId) -> Result<()> {
+    /// # async fn example(client: Client, image_id: ImageId) -> Result<()> {
     /// client
     ///     .artifacts_download(image_id, "report.json", "/tmp/report.json")
     ///     .await?;
@@ -477,7 +488,7 @@ impl Client {
     /// # }
     /// ```
     pub async fn artifacts_download<P, N>(
-        &mut self,
+        &self,
         image_id: ImageId,
         name: N,
         output: P,
@@ -503,12 +514,12 @@ impl Client {
     ///
     /// ```rust,no_run
     /// # use freta::{Client, Result, ImageId};
-    /// # async fn example(mut client: Client, image_id: ImageId) -> Result<()> {
+    /// # async fn example(client: Client, image_id: ImageId) -> Result<()> {
     /// client.images_monitor(image_id).await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn images_monitor(&mut self, image_id: ImageId) -> Result<()> {
+    pub async fn images_monitor(&self, image_id: ImageId) -> Result<()> {
         let mut image = self.images_get(image_id).await?;
         let mut prev_state = image.state.clone();
         let mut first = true;
@@ -557,7 +568,7 @@ impl Client {
     /// ```rust,no_run
     /// # use freta::{Client, Result};
     /// # use futures::StreamExt;
-    /// # async fn example(mut client: Client) -> Result<()> {
+    /// # async fn example(client: Client) -> Result<()> {
     /// let mut stream = client.webhooks_list();
     /// while let Some(entry) = stream.next().await {
     ///     let entry = entry?;
@@ -567,7 +578,7 @@ impl Client {
     /// # }
     /// ```
     pub fn webhooks_list(
-        &mut self,
+        &self,
     ) -> Pin<Box<impl Stream<Item = std::result::Result<Webhook, crate::Error>> + Send + '_>> {
         let mut request = WebhooksListRequest { continuation: None };
         Box::pin(async_stream::try_stream! {
@@ -591,7 +602,7 @@ impl Client {
     /// This function will return an error in the following conditions:
     /// 1. The connection to the Service fails
     /// 2. The user does not have permission to read the specified webhook
-    pub async fn webhook_get(&mut self, webhook_id: WebhookId) -> Result<Webhook> {
+    pub async fn webhook_get(&self, webhook_id: WebhookId) -> Result<Webhook> {
         let res = self
             .backend
             .get(&format!("/api/webhooks/{webhook_id}"), None::<bool>)
@@ -606,7 +617,7 @@ impl Client {
     /// This function will return an error in the following conditions:
     /// 1. The connection to the Service fails
     /// 2. The user does not have permission to delete the specified webhook
-    pub async fn webhook_delete(&mut self, webhook_id: WebhookId) -> Result<WebhookBoolResponse> {
+    pub async fn webhook_delete(&self, webhook_id: WebhookId) -> Result<WebhookBoolResponse> {
         let res = self
             .backend
             .delete(&format!("/api/webhooks/{webhook_id}"))
@@ -622,7 +633,7 @@ impl Client {
     /// 1. The connection to the Service fails
     /// 2. The user does not have permission to update the specified webhook
     pub async fn webhook_update<S>(
-        &mut self,
+        &self,
         webhook_id: WebhookId,
         url: Url,
         event_types: BTreeSet<WebhookEventType>,
@@ -660,7 +671,7 @@ impl Client {
     /// This function will return an error in the following conditions:
     /// 1. The connection to the Service fails
     /// 2. The user does not have permission to update the specified webhook
-    pub async fn webhook_ping(&mut self, webhook_id: WebhookId) -> Result<Bytes> {
+    pub async fn webhook_ping(&self, webhook_id: WebhookId) -> Result<Bytes> {
         let res = self
             .backend
             .patch_raw(&format!("/api/webhooks/{webhook_id}"), None::<bool>)
@@ -681,7 +692,7 @@ impl Client {
     /// 1. The connection to the Service fails
     /// 2. The user does not have permission to resend the specified webhook event
     pub async fn webhook_resend(
-        &mut self,
+        &self,
         webhook_id: WebhookId,
         webhook_event_id: WebhookEventId,
     ) -> Result<WebhookEvent> {
@@ -701,7 +712,7 @@ impl Client {
     /// 1. The connection to the Service fails
     /// 2. The user does not have permission to create a webhook
     pub async fn webhook_create<S>(
-        &mut self,
+        &self,
         url: Url,
         event_types: BTreeSet<WebhookEventType>,
         hmac_token: Option<S>,
@@ -734,7 +745,7 @@ impl Client {
     /// ```rust,no_run
     /// # use freta::{Client, models::webhooks::WebhookId, Result};
     /// # use futures::StreamExt;
-    /// # async fn example(mut client: Client, webhook_id: WebhookId) -> Result<()> {
+    /// # async fn example(client: Client, webhook_id: WebhookId) -> Result<()> {
     /// let mut stream = client.webhooks_logs(webhook_id);
     /// while let Some(entry) = stream.next().await {
     ///     let entry = entry?;
@@ -744,14 +755,14 @@ impl Client {
     /// # }
     /// ```
     pub fn webhooks_logs(
-        &mut self,
+        &self,
         webhook_id: WebhookId,
     ) -> Pin<Box<impl Stream<Item = std::result::Result<WebhookLog, crate::Error>> + Send + '_>>
     {
         let mut request = WebhookLogListRequest { continuation: None };
         Box::pin(async_stream::try_stream! {
             loop {
-                let result: WebhookLogListResponse = self.backend.get(&format!("/api/webhooks/{}/logs", webhook_id), Some(&request)).await?;
+                let result: WebhookLogListResponse = self.backend.get(&format!("/api/webhooks/{webhook_id}/logs"), Some(&request)).await?;
                 for webhook in result.webhook_events {
                     yield webhook;
                 }

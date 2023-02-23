@@ -41,7 +41,7 @@ async fn main() -> Result<()> {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
     let cmd = Args::parse();
 
-    let mut client = Client::new().await?;
+    let client = Client::new().await?;
 
     let creds = Arc::new(DefaultAzureCredential::default());
     let compute_client = azure_mgmt_compute::Client::builder(creds).build();
@@ -49,7 +49,6 @@ async fn main() -> Result<()> {
     let vm = compute_client
         .virtual_machines_client()
         .get(&cmd.group, &cmd.vm_name, &cmd.subscription_id)
-        .into_future()
         .await?;
 
     let mut tags = cmd.tags.unwrap_or_default();
@@ -99,7 +98,6 @@ async fn main() -> Result<()> {
             extension_parameters,
             &cmd.subscription_id,
         )
-        .into_future()
         .await?;
 
     if cmd.monitor {

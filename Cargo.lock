@@ -116,7 +116,7 @@ dependencies = [
  "http",
  "http-body",
  "hyper",
- "itoa 1.0.5",
+ "itoa",
  "matchit",
  "memchr",
  "mime",
@@ -154,9 +154,9 @@ dependencies = [
 
 [[package]]
 name = "azure_core"
-version = "0.8.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca6dd496e30132b9403c478ea87121834669fa1a307ee2d0b6721c3aca47cccd"
+checksum = "b8904f5c2ee4f5a172542700a42708706ef8591a16a5c6226bcf6b7f21ead9a6"
 dependencies = [
  "async-trait",
  "base64 0.13.1",
@@ -181,9 +181,9 @@ dependencies = [
 
 [[package]]
 name = "azure_identity"
-version = "0.9.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "30e5c1eebcb9f425b9d8faecda921e782c66e15af5050d53f44027c66d5d7ca9"
+checksum = "62971ca2519f81d58bf932c229bbc756d875abc61d2fc5958040612a822d4e53"
 dependencies = [
  "async-lock",
  "async-trait",
@@ -203,9 +203,9 @@ dependencies = [
 
 [[package]]
 name = "azure_mgmt_compute"
-version = "0.9.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a12ce5490218a4af022276c5fc15c5c91b66120312be6a16b72e85a496035c10"
+checksum = "ebf265aea5633567a9dafeda9f0d60b3f6824e3aa31a8884fc0f6ad33ba02b36"
 dependencies = [
  "azure_core",
  "bytes",
@@ -217,9 +217,9 @@ dependencies = [
 
 [[package]]
 name = "azure_storage"
-version = "0.9.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b780469184adfd6c692cfb32814e0cb7b8553d5d6cd2c8a8dd6b53165acec07f"
+checksum = "4b5940f60d0cdfe6312e9feb6528c975ba9de061026843b0ded723585b540338"
 dependencies = [
  "RustyXML",
  "async-trait",
@@ -242,9 +242,9 @@ dependencies = [
 
 [[package]]
 name = "azure_storage_blobs"
-version = "0.9.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e0d8edb1630aa31452896fc6450ae151f89cc6374da4c034959b17d163dd352f"
+checksum = "bf7e8d719a89c6079ba6298fc3969acf53a24d590e1f5c1faab6f732e3ddf56b"
 dependencies = [
  "RustyXML",
  "azure_core",
@@ -291,18 +291,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bstr"
-version = "0.2.17"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba3569f383e8f1598449f1a423e72e99569137b47740b1da11ef19af3d5c3223"
-dependencies = [
- "lazy_static",
- "memchr",
- "regex-automata",
- "serde",
-]
-
-[[package]]
 name = "bumpalo"
 version = "3.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -313,6 +301,38 @@ name = "bytes"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "89b2fd2a0dcf38d7971e2194b6b6eebab45ae01067456a7fd93d5547a61b70be"
+
+[[package]]
+name = "camino"
+version = "1.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6031a462f977dd38968b6f23378356512feeace69cef817e1a4475108093cec3"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "cargo-platform"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cbdb825da8a5df079a43676dbe042702f1707b1109f713a01420fbb4cc71fa27"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "cargo_metadata"
+version = "0.15.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "08a1ec454bc3eead8719cb56e15dbbfecdbc14e4b3a3ae4936cc6e31f5fc0d07"
+dependencies = [
+ "camino",
+ "cargo-platform",
+ "semver",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
 
 [[package]]
 name = "cc"
@@ -477,13 +497,12 @@ dependencies = [
 
 [[package]]
 name = "csv"
-version = "1.1.6"
+version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "22813a6dc45b335f9bade10bf7271dc477e81113e89eb251a0bc2a8a81c536e1"
+checksum = "af91f40b7355f82b0a891f50e70399475945bb0b0da4f1700ce60761c9d3e359"
 dependencies = [
- "bstr",
  "csv-core",
- "itoa 0.4.8",
+ "itoa",
  "ryu",
  "serde",
 ]
@@ -674,7 +693,7 @@ dependencies = [
 
 [[package]]
 name = "freta"
-version = "0.14.0"
+version = "0.15.0"
 dependencies = [
  "assert-json-diff",
  "async-stream",
@@ -684,6 +703,7 @@ dependencies = [
  "azure_mgmt_compute",
  "azure_storage_blobs",
  "bytes",
+ "cargo_metadata",
  "clap",
  "cli-table",
  "csv",
@@ -696,8 +716,10 @@ dependencies = [
  "insta",
  "log",
  "powershell_script",
+ "project-root",
  "reqwest",
  "schemars",
+ "semver",
  "serde",
  "serde_json",
  "serde_urlencoded",
@@ -946,7 +968,7 @@ checksum = "75f43d41e26995c17e71ee126451dd3941010b0514a81a9d11f3b341debc2399"
 dependencies = [
  "bytes",
  "fnv",
- "itoa 1.0.5",
+ "itoa",
 ]
 
 [[package]]
@@ -1019,7 +1041,7 @@ dependencies = [
  "http-body",
  "httparse",
  "httpdate",
- "itoa 1.0.5",
+ "itoa",
  "pin-project-lite",
  "socket2",
  "tokio",
@@ -1105,9 +1127,9 @@ checksum = "64e9829a50b42bb782c1df523f78d332fe371b10c661e78b7a3c34b0198e9fac"
 
 [[package]]
 name = "insta"
-version = "1.26.0"
+version = "1.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6f0f08b46e4379744de2ab67aa8f7de3ffd1da3e275adc41fcc82053ede46ff"
+checksum = "fea5b3894afe466b4bcf0388630fc15e11938a6074af0cd637c825ba2ec8a099"
 dependencies = [
  "console",
  "lazy_static",
@@ -1153,12 +1175,6 @@ dependencies = [
  "rustix",
  "windows-sys 0.45.0",
 ]
-
-[[package]]
-name = "itoa"
-version = "0.4.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b71991ff56294aa922b450139ee08b3bfc70982c6b2c7562771375cf73542dd4"
 
 [[package]]
 name = "itoa"
@@ -1532,6 +1548,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "project-root"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8bccbff07d5ed689c4087d20d7307a52ab6141edeedf487c3876a55b86cf63df"
+
+[[package]]
 name = "quote"
 version = "1.0.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1630,12 +1652,6 @@ dependencies = [
  "memchr",
  "regex-syntax",
 ]
-
-[[package]]
-name = "regex-automata"
-version = "0.1.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c230d73fb8d8c1b9c0b3135c5142a8acee3a0558fb8db5cf1cb65f8d7862132"
 
 [[package]]
 name = "regex-syntax"
@@ -1800,6 +1816,9 @@ name = "semver"
 version = "1.0.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "58bc9567378fc7690d6b2addae4e60ac2eeea07becb2c64b9f218b53865cba2a"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "serde"
@@ -1850,7 +1869,7 @@ version = "1.0.93"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cad406b69c91885b5107daf2c29572f6c8cdb3c66826821e286c533490c0bc76"
 dependencies = [
- "itoa 1.0.5",
+ "itoa",
  "ryu",
  "serde",
 ]
@@ -1882,7 +1901,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d3491c14715ca2294c4d6a88f15e84739788c1d030eed8c110436aafdaa2f3fd"
 dependencies = [
  "form_urlencoded",
- "itoa 1.0.5",
+ "itoa",
  "ryu",
  "serde",
 ]
@@ -2046,7 +2065,7 @@ version = "0.3.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a561bf4617eebd33bca6434b988f39ed798e527f51a1e797d0ee4f61c0a38376"
 dependencies = [
- "itoa 1.0.5",
+ "itoa",
  "libc",
  "num_threads",
  "serde",

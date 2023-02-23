@@ -87,6 +87,10 @@ pub struct Config {
 
     /// AAD App registration scope
     pub scope: Option<String>,
+
+    /// Do not load or save cached login tokens
+    #[serde(default)]
+    pub ignore_login_cache: bool,
 }
 
 impl fmt::Debug for Config {
@@ -95,6 +99,7 @@ impl fmt::Debug for Config {
         d.field("api url", &self.api_url.as_str());
         d.field("client id", &self.client_id.as_str());
         d.field("tenant id", &self.tenant_id.as_str());
+        d.field("ignore login cache", &self.ignore_login_cache);
 
         if self.client_secret.is_some() {
             d.field("client secret", &REDACTED);
@@ -130,6 +135,7 @@ impl Config {
             tenant_id: "common".into(),
             client_secret: None,
             scope: Some("api://a934fc14-92d7-4127-aecd-bddab35935da/.default".into()),
+            ignore_login_cache: false,
         })
     }
 

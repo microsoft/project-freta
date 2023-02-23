@@ -113,7 +113,7 @@ fn get_vm_id(vm_name: &str) -> Result<Uuid> {
 async fn create_snapshot(
     vm_name: String,
     mut tags: Vec<(String, String)>,
-    client: &mut Client,
+    client: &Client,
 ) -> Result<Image> {
     let vm_id = get_vm_id(&vm_name)?;
 
@@ -149,7 +149,7 @@ async fn main() -> Result<()> {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
     let cmd = Args::parse();
 
-    let mut client = Client::new().await?;
+    let client = Client::new().await?;
 
     match cmd.command {
         Commands::List => {
@@ -160,7 +160,7 @@ async fn main() -> Result<()> {
         }
         Commands::ImageVm(opts) => {
             let image =
-                create_snapshot(opts.vm_name, opts.tags.unwrap_or_default(), &mut client).await?;
+                create_snapshot(opts.vm_name, opts.tags.unwrap_or_default(), &client).await?;
             if opts.monitor {
                 client.images_monitor(image.image_id).await?;
             }

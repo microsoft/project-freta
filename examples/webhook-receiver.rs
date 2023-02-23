@@ -96,7 +96,7 @@ fn compare(a: &str, b: &str) -> bool {
 
 /// retrieve the report for an image and log the extracted kernel banner
 async fn show_kernel_banner_from_report(image_id: ImageId) -> Result<()> {
-    let mut client = Client::new().await?;
+    let client = Client::new().await?;
     let report = client.artifacts_get(image_id, "report.json").await?;
     let report_decoded: Value = serde_json::from_slice(&report)?;
     info!(
