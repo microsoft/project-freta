@@ -7,10 +7,11 @@
 
 use clap::{Parser, Subcommand};
 use freta::{argparse::parse_key_val, Client, Error, Image, ImageFormat, Result};
-use log::info;
 use powershell_script::PsScriptBuilder;
 use serde::Deserialize;
-use std::path::PathBuf;
+use std::{io::stderr, path::PathBuf};
+use tracing::{info, level_filters::LevelFilter};
+use tracing_subscriber::EnvFilter;
 use uuid::Uuid;
 
 #[derive(Parser)]
@@ -146,7 +147,16 @@ async fn create_snapshot(
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            EnvFilter::builder()
+                .with_default_directive(LevelFilter::INFO.into())
+                .from_env()
+                .map_err(|e| Error::Other("invalid env filter", e.to_string()))?,
+        )
+        .with_writer(stderr)
+        .init();
+
     let cmd = Args::parse();
 
     let client = Client::new().await?;

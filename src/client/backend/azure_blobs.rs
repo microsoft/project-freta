@@ -4,7 +4,7 @@ use crate::client::error::Result;
 use azure_storage_blobs::prelude::*;
 use bytes::Bytes;
 use futures::stream::StreamExt;
-use indicatif::{ProgressBar, ProgressFinish, ProgressStyle};
+use indicatif::{ProgressBar, ProgressDrawTarget, ProgressFinish, ProgressStyle};
 use std::path::Path;
 use tokio::{
     fs::File,
@@ -20,9 +20,9 @@ pub(crate) async fn blob_upload(mut handle: File, sas: Url) -> Result<()> {
     let block_size_usize = block_size.try_into()?;
 
     let style = ProgressStyle::with_template(
-        "[{elapsed_precise}] [{wide_bar}] {bytes}/{total_bytes} ({bytes_per_sec})",
+        "[{elapsed_precise}] [eta:{eta}] [{wide_bar}] {bytes}/{total_bytes} ({bytes_per_sec})",
     )?;
-    let status = ProgressBar::new(size)
+    let status = ProgressBar::with_draw_target(Some(size), ProgressDrawTarget::stderr_with_hz(1))
         .with_style(style)
         .with_finish(ProgressFinish::AndLeave);
 

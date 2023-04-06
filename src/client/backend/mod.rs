@@ -14,10 +14,10 @@ use crate::{
     SDK_NAME, SDK_VERSION,
 };
 use bytes::Bytes;
-use log::trace;
 use reqwest::ClientBuilder;
 use serde::{de::DeserializeOwned, Serialize};
 use tokio::sync::Mutex;
+use tracing::trace;
 
 #[derive(Debug)]
 /// REST API client implementation

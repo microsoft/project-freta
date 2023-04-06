@@ -18,9 +18,10 @@ use freta::{
     models::webhooks::{hmac_sha512, WebhookEvent, WebhookEventType, DIGEST_HEADER},
     Client, Error, ImageId, Result, Secret,
 };
-use log::{error, info};
 use serde_json::Value;
-use std::{net::SocketAddr, string::ToString};
+use std::{io::stderr, net::SocketAddr, string::ToString};
+use tracing::{error, info, level_filters::LevelFilter};
+use tracing_subscriber::EnvFilter;
 
 const API_ENDPOINT: &str = "/api/freta-analysis-webhook";
 
@@ -36,7 +37,15 @@ struct Config {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            EnvFilter::builder()
+                .with_default_directive(LevelFilter::INFO.into())
+                .from_env()
+                .map_err(|e| Error::Other("invalid env filter", e.to_string()))?,
+        )
+        .with_writer(stderr)
+        .init();
 
     let config = Config::parse();
 
@@ -99,10 +108,8 @@ async fn show_kernel_banner_from_report(image_id: ImageId) -> Result<()> {
     let client = Client::new().await?;
     let report = client.artifacts_get(image_id, "report.json").await?;
     let report_decoded: Value = serde_json::from_slice(&report)?;
-    info!(
-        "report: image_id:{image_id} banner:{:?}",
-        report_decoded["info"]["banner"]
-    );
+    let banner = report_decoded.get("info").and_then(|x| x.get("banner"));
+    info!("report: image_id:{image_id} banner:{banner:?}");
     Ok(())
 }
 

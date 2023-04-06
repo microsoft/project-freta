@@ -67,16 +67,18 @@ use freta::{
     models::webhooks::{WebhookEventId, WebhookEventType, WebhookId},
     Client, ClientId, Config, Error, ImageFormat, ImageId, ImageState, OwnerId, Result, Secret,
 };
-use futures::{Stream, StreamExt};
-use log::info;
+use futures::{future::try_join_all, Stream, StreamExt};
 use serde::ser::{SerializeSeq, Serializer};
 use serde_json::{ser::PrettyFormatter, Value};
 use std::{
     fmt::{Display, Formatter},
+    io::stderr,
     path::PathBuf,
     pin::Pin,
 };
 use tokio::io::{self, AsyncWriteExt};
+use tracing::{info, level_filters::LevelFilter};
+use tracing_subscriber::EnvFilter;
 use url::Url;
 
 /// Third-party library license details
@@ -275,20 +277,23 @@ enum ImagesCommands {
         /// image id
         image_id: ImageId,
     },
-    /// monitor the analysis of an image
+    /// monitor the analysis of specific images
     Monitor {
-        /// image id
-        image_id: ImageId,
+        /// image ids
+        #[arg(required = true)]
+        image_ids: Vec<ImageId>,
     },
-    /// delete an image
+    /// delete specific images
     Delete {
-        /// image id
-        image_id: ImageId,
+        /// image ids
+        #[arg(required = true)]
+        image_ids: Vec<ImageId>,
     },
-    /// reanalyze an image
+    /// reanalyze specific images
     Reanalyze {
-        /// image id
-        image_id: ImageId,
+        /// image ids
+        #[arg(required = true)]
+        image_ids: Vec<ImageId>,
     },
     /// list available images
     List {
@@ -511,16 +516,24 @@ async fn images(subcommands: ImagesCommands) -> Result<()> {
             let fields = fields.unwrap_or(
                 IMAGE_LIST_FIELDS
                     .iter()
-                    .map(std::string::ToString::to_string)
+                    .map(ToString::to_string)
                     .collect::<Vec<_>>(),
             );
             serialize_stream(output, Some(fields), Some(("{\"images\":", "}")), stream).await
         }
-        ImagesCommands::Delete { image_id } => {
-            client.images_delete(image_id).await.map(print_data)?
+        ImagesCommands::Delete { image_ids } => {
+            let mut result = vec![];
+            for image_id in image_ids {
+                result.push(client.images_delete(image_id).await?);
+            }
+            print_data(result)
         }
-        ImagesCommands::Reanalyze { image_id } => {
-            client.images_reanalyze(image_id).await.map(print_data)?
+        ImagesCommands::Reanalyze { image_ids } => {
+            let mut result = vec![];
+            for image_id in image_ids {
+                result.push(client.images_reanalyze(image_id).await?);
+            }
+            print_data(result)
         }
         ImagesCommands::Create { format, tags } => client
             .images_create(format, tags.unwrap_or_default())
@@ -565,7 +578,20 @@ async fn images(subcommands: ImagesCommands) -> Result<()> {
             Ok(())
         }
         ImagesCommands::Download { image_id, path } => client.images_download(image_id, path).await,
-        ImagesCommands::Monitor { image_id } => client.images_monitor(image_id).await,
+        ImagesCommands::Monitor { image_ids } => {
+            // in the previous methods processing a list of `ImageId`, the
+            // implementing function was called sequentially.  For `monitor`,
+            // however, we want to check the status of each of the provided
+            // images concurrently as these can be a long running operation.
+            // This operation should fail as soon as any of the images fail.
+            try_join_all(
+                image_ids
+                    .into_iter()
+                    .map(|image_id| client.images_monitor(image_id)),
+            )
+            .await?;
+            Ok(())
+        }
     }
 }
 
@@ -840,7 +866,15 @@ where
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            EnvFilter::builder()
+                .with_default_directive(LevelFilter::INFO.into())
+                .from_env()
+                .map_err(|e| Error::Other("invalid env filter", e.to_string()))?,
+        )
+        .with_writer(stderr)
+        .init();
 
     let cmd = Args::parse();
     match cmd.subcommand {

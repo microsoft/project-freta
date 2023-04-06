@@ -11,9 +11,10 @@ use azure_mgmt_compute::models::{
 };
 use clap::Parser;
 use freta::{argparse::parse_key_val, Client, Error, ImageFormat, Result};
-use log::info;
 use serde_json::json;
-use std::sync::Arc;
+use std::{io::stderr, sync::Arc};
+use tracing::{info, level_filters::LevelFilter};
+use tracing_subscriber::EnvFilter;
 use uuid::Uuid;
 
 // https://learn.microsoft.com/en-us/azure/virtual-machines/extensions/custom-script-linux#extension-schema
@@ -38,7 +39,16 @@ struct Args {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            EnvFilter::builder()
+                .with_default_directive(LevelFilter::INFO.into())
+                .from_env()
+                .map_err(|e| Error::Other("invalid env filter", e.to_string()))?,
+        )
+        .with_writer(stderr)
+        .init();
+
     let cmd = Args::parse();
 
     let client = Client::new().await?;

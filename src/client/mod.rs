@@ -38,7 +38,6 @@ use crate::{
 };
 use bytes::Bytes;
 use futures::{Stream, StreamExt};
-use log::{debug, info};
 use std::{
     collections::{BTreeMap, BTreeSet},
     path::Path,
@@ -46,6 +45,7 @@ use std::{
     time::Duration,
 };
 use tokio::{fs::File, time::sleep};
+use tracing::{debug, info};
 use url::Url;
 
 /// convert an `Iterator` of key/value pairs into a `BTreeMap`

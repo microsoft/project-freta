@@ -23,7 +23,6 @@ fn get_dependencies(metadata: &Metadata) -> Vec<&str> {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    println!("cargo:rerun-if-changed=build.rs");
     println!(
         "cargo:rerun-if-changed={}",
         get_project_root()?.join("Cargo.lock").display()
@@ -47,7 +46,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
 
         let Some(license) = package.license.as_ref() else {
-            panic!("package {} has no license", package.name);
+            return Err(format!("package {} has no license", package.name).into());
         };
 
         licenses.push(Package {
