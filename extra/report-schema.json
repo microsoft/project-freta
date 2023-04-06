@@ -29,7 +29,10 @@
       ]
     },
     "checks": {
-      "$ref": "#/definitions/Checks"
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Check"
+      }
     },
     "info": {
       "$ref": "#/definitions/Info"
@@ -38,13 +41,19 @@
       "$ref": "#/definitions/Namespaces"
     },
     "interrupt_table": {
-      "$ref": "#/definitions/IDT"
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/IdtEntry"
+      }
     },
     "kernel_modules": {
-      "$ref": "#/definitions/Modules"
+      "$ref": "#/definitions/KernelModules"
     },
     "mounts": {
-      "$ref": "#/definitions/Mounts"
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Mount"
+      }
     },
     "networks": {
       "$ref": "#/definitions/Networks"
@@ -53,7 +62,10 @@
       "$ref": "#/definitions/SyscallTables"
     },
     "tasks": {
-      "$ref": "#/definitions/Tasks"
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Task"
+      }
     }
   },
   "definitions": {
@@ -115,10 +127,56 @@
         }
       }
     },
-    "ArpTable": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/Entry"
+    "ArpEntry": {
+      "type": "object",
+      "required": [
+        "dead",
+        "dev_name",
+        "dev_type",
+        "ip",
+        "mac",
+        "probes",
+        "updated",
+        "used"
+      ],
+      "properties": {
+        "dead": {
+          "writeOnly": true,
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "dev_name": {
+          "type": "string"
+        },
+        "dev_type": {
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "ip": {
+          "$ref": "#/definitions/Address"
+        },
+        "mac": {
+          "type": "string"
+        },
+        "probes": {
+          "writeOnly": true,
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "updated": {
+          "writeOnly": true,
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "used": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        }
       }
     },
     "BlockCgroups": {
@@ -144,34 +202,6 @@
           ]
         }
       }
-    },
-    "CallbackSymbol": {
-      "oneOf": [
-        {
-          "type": "object",
-          "required": [
-            "Kernel"
-          ],
-          "properties": {
-            "Kernel": {
-              "type": "string"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "Module"
-          ],
-          "properties": {
-            "Module": {
-              "type": "string"
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
     },
     "Cgroup": {
       "type": "object",
@@ -214,14 +244,11 @@
     "CgroupNamespace": {
       "type": "object",
       "required": [
-        "cgroup_addr",
-        "user_namespace_addr"
+        "cgroup_addr"
       ],
       "properties": {
         "cgroup_addr": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
+          "$ref": "#/definitions/VirtualAddress"
         },
         "task_count": {
           "type": [
@@ -231,68 +258,117 @@
           "format": "int32"
         },
         "user_namespace_addr": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
+          "anyOf": [
+            {
+              "$ref": "#/definitions/VirtualAddress"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       }
     },
-    "Checks": {
+    "Check": {
+      "description": "An issue found in the analysis of a Freta snapshot",
       "type": "object",
+      "required": [
+        "issue"
+      ],
       "properties": {
-        "duplicate_credentials": {
+        "addr": {
+          "description": "Address of the hooked function",
+          "allOf": [
+            {
+              "$ref": "#/definitions/VirtualAddress"
+            }
+          ]
+        },
+        "address": {
+          "description": "The virtual memory address related to the issue",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/VirtualAddress"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "details": {
+          "description": "Detailed information about the issue",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "disassembly": {
+          "description": "disassembly of the hooked function",
+          "type": "string"
+        },
+        "hook_type": {
+          "description": "type of hook",
+          "type": "string"
+        },
+        "issue": {
+          "description": "Basic information about the issue",
+          "type": "string"
+        },
+        "paths": {
+          "description": "Paths involved in the issue",
           "type": "array",
           "items": {
-            "$ref": "#/definitions/DuplicateCredential"
+            "type": "string"
           }
         },
-        "duplicate_imports": {
+        "pids": {
+          "description": "Process IDs involved in the issue",
           "type": "array",
           "items": {
-            "$ref": "#/definitions/DuplicateImport"
+            "type": "integer",
+            "format": "uint32",
+            "minimum": 0.0
           }
         },
-        "file_handlers": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/FileHandler"
-          }
+        "symbol": {
+          "description": "The symbol related to the issue",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Symbol"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
-        "functions": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/Function"
-          }
+        "target_addr": {
+          "description": "calculated address for the destination of the hook",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/VirtualAddress"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
-        "idt": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/IdtEntry"
-          }
+        "target_disassembly": {
+          "description": "disassembly of the destination for the hooked function",
+          "type": [
+            "string",
+            "null"
+          ]
         },
-        "netfilter_issues": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/NetfilterIssue"
-          }
-        },
-        "syscalls": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/Syscall"
-          }
-        },
-        "unexpected_module_notifiers": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/UnexpectedNotifier"
-          }
-        },
-        "unlinked_modules": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/UnlinkedModule"
-          }
+        "target_module": {
+          "description": "symbol name for the destination for the hooked function if known",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Symbol"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       }
     },
@@ -345,105 +421,19 @@
         "$ref": "#/definitions/Cgroup"
       }
     },
-    "DuplicateCredential": {
-      "type": "object",
-      "required": [
-        "address",
-        "dup_pid",
-        "field",
-        "pid"
-      ],
-      "properties": {
-        "address": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
-        },
-        "dup_pid": {
-          "type": "integer",
-          "format": "uint32",
-          "minimum": 0.0
-        },
-        "field": {
-          "type": "string"
-        },
-        "pid": {
-          "type": "integer",
-          "format": "uint32",
-          "minimum": 0.0
-        }
-      }
-    },
-    "DuplicateImport": {
-      "type": "object",
-      "required": [
-        "paths",
-        "pid"
-      ],
-      "properties": {
-        "paths": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "pid": {
-          "type": "integer",
-          "format": "uint32",
-          "minimum": 0.0
-        }
-      }
-    },
-    "Entry": {
-      "type": "object",
-      "required": [
-        "addr",
-        "id"
-      ],
-      "properties": {
-        "addr": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
-        },
-        "id": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
-        },
-        "implementation": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "name": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/IdtName"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        }
-      }
-    },
     "File": {
       "type": "object",
       "required": [
+        "address",
         "fd",
-        "file_addr",
         "offset",
         "path"
       ],
       "properties": {
-        "fd": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
+        "address": {
+          "$ref": "#/definitions/VirtualAddress"
         },
-        "file_addr": {
+        "fd": {
           "type": "integer",
           "format": "uint",
           "minimum": 0.0
@@ -471,67 +461,6 @@
           ],
           "format": "uint64",
           "minimum": 0.0
-        }
-      }
-    },
-    "FileHandler": {
-      "type": "object",
-      "required": [
-        "addr",
-        "area",
-        "disassembly",
-        "function",
-        "hook_type"
-      ],
-      "properties": {
-        "addr": {
-          "description": "Address of the hooked function",
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
-        },
-        "area": {
-          "type": "string"
-        },
-        "disassembly": {
-          "description": "disassembly of the hooked function",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "function": {
-          "type": "string"
-        },
-        "hook_type": {
-          "description": "type of hook",
-          "type": "string"
-        },
-        "target_addr": {
-          "description": "calculated address for the destination of the hook",
-          "type": [
-            "integer",
-            "null"
-          ],
-          "format": "uint",
-          "minimum": 0.0
-        },
-        "target_disassembly": {
-          "description": "disassembly of the destination for the hooked function",
-          "type": [
-            "array",
-            "null"
-          ],
-          "items": {
-            "type": "string"
-          }
-        },
-        "target_module": {
-          "description": "symbol name for the destination for the hooked function if known",
-          "type": [
-            "string",
-            "null"
-          ]
         }
       }
     },
@@ -568,124 +497,39 @@
         "__NOT_USED"
       ]
     },
-    "Function": {
-      "type": "object",
-      "required": [
-        "addr",
-        "disassembly",
-        "hook_type",
-        "name"
-      ],
-      "properties": {
-        "addr": {
-          "description": "Address of the hooked function",
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
-        },
-        "disassembly": {
-          "description": "disassembly of the hooked function",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "hook_type": {
-          "description": "type of hook",
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "target_addr": {
-          "description": "calculated address for the destination of the hook",
-          "type": [
-            "integer",
-            "null"
-          ],
-          "format": "uint",
-          "minimum": 0.0
-        },
-        "target_disassembly": {
-          "description": "disassembly of the destination for the hooked function",
-          "type": [
-            "array",
-            "null"
-          ],
-          "items": {
-            "type": "string"
-          }
-        },
-        "target_module": {
-          "description": "symbol name for the destination for the hooked function if known",
-          "type": [
-            "string",
-            "null"
-          ]
-        }
-      }
-    },
-    "IDT": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/Entry"
-      }
-    },
     "IdtEntry": {
       "type": "object",
       "required": [
         "addr",
-        "disassembly",
-        "hook_type",
         "id"
       ],
       "properties": {
         "addr": {
-          "description": "Address of the hooked function",
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
-        },
-        "disassembly": {
-          "description": "disassembly of the hooked function",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "hook_type": {
-          "description": "type of hook",
-          "type": "string"
+          "$ref": "#/definitions/VirtualAddress"
         },
         "id": {
           "type": "integer",
           "format": "uint",
           "minimum": 0.0
         },
-        "target_addr": {
-          "description": "calculated address for the destination of the hook",
-          "type": [
-            "integer",
-            "null"
-          ],
-          "format": "uint",
-          "minimum": 0.0
+        "name": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/IdtName"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
-        "target_disassembly": {
-          "description": "disassembly of the destination for the hooked function",
-          "type": [
-            "array",
-            "null"
-          ],
-          "items": {
-            "type": "string"
-          }
-        },
-        "target_module": {
-          "description": "symbol name for the destination for the hooked function if known",
-          "type": [
-            "string",
-            "null"
+        "symbol": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Symbol"
+            },
+            {
+              "type": "null"
+            }
           ]
         }
       }
@@ -764,8 +608,7 @@
         "kernel_aslr_offset",
         "kernel_pml4",
         "machine",
-        "memory_info",
-        "vm_info"
+        "memory_info"
       ],
       "properties": {
         "banner": {
@@ -773,22 +616,45 @@
         },
         "kernel_aslr_offset": {
           "type": "integer",
-          "format": "uint",
+          "format": "uint64",
           "minimum": 0.0
         },
         "kernel_pml4": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
+          "$ref": "#/definitions/VirtualAddress"
         },
         "machine": {
           "$ref": "#/definitions/UtsName"
         },
         "memory_info": {
           "$ref": "#/definitions/MemoryInfo"
+        }
+      }
+    },
+    "KernelModules": {
+      "type": "object",
+      "required": [
+        "modules",
+        "notifiers"
+      ],
+      "properties": {
+        "modules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Module"
+          }
         },
-        "vm_info": {
-          "$ref": "#/definitions/Info"
+        "modules_disabled": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int64"
+        },
+        "notifiers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ModuleNotifier"
+          }
         }
       }
     },
@@ -843,25 +709,23 @@
       ],
       "properties": {
         "addr": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
+          "$ref": "#/definitions/VirtualAddress"
         },
         "path": {
           "type": "string"
         },
         "root_addr": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
+          "$ref": "#/definitions/VirtualAddress"
         },
         "user_namespace_addr": {
-          "type": [
-            "integer",
-            "null"
-          ],
-          "format": "uint",
-          "minimum": 0.0
+          "anyOf": [
+            {
+              "$ref": "#/definitions/VirtualAddress"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       }
     },
@@ -875,13 +739,13 @@
         "init_size",
         "name",
         "source",
-        "symbols"
+        "srcversion",
+        "symbols",
+        "version"
       ],
       "properties": {
         "addr": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
+          "$ref": "#/definitions/VirtualAddress"
         },
         "args": {
           "type": [
@@ -890,9 +754,7 @@
           ]
         },
         "core_addr": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
+          "$ref": "#/definitions/VirtualAddress"
         },
         "core_artifact_name": {
           "type": [
@@ -902,13 +764,11 @@
         },
         "core_size": {
           "type": "integer",
-          "format": "uint",
+          "format": "uint64",
           "minimum": 0.0
         },
         "init_addr": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
+          "$ref": "#/definitions/VirtualAddress"
         },
         "init_artifact_name": {
           "type": [
@@ -918,20 +778,21 @@
         },
         "init_size": {
           "type": "integer",
-          "format": "uint",
+          "format": "uint64",
           "minimum": 0.0
         },
         "name": {
           "type": "string"
         },
         "source": {
-          "$ref": "#/definitions/ModuleSource"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ModuleSource"
+          },
+          "uniqueItems": true
         },
         "srcversion": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": "string"
         },
         "symbols": {
           "type": "array",
@@ -940,10 +801,7 @@
           }
         },
         "version": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": "string"
         }
       }
     },
@@ -955,23 +813,21 @@
       ],
       "properties": {
         "callback_address": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
+          "$ref": "#/definitions/VirtualAddress"
         },
-        "callback_name": {
+        "priority": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "symbol": {
           "anyOf": [
             {
-              "$ref": "#/definitions/CallbackSymbol"
+              "$ref": "#/definitions/Symbol"
             },
             {
               "type": "null"
             }
           ]
-        },
-        "priority": {
-          "type": "integer",
-          "format": "int64"
         }
       }
     },
@@ -979,7 +835,9 @@
       "type": "string",
       "enum": [
         "ModulesList",
-        "ModuleBugList"
+        "BugList",
+        "SourceList",
+        "TargetList"
       ]
     },
     "ModuleSymbol": {
@@ -990,44 +848,11 @@
       ],
       "properties": {
         "addr": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
+          "$ref": "#/definitions/VirtualAddress"
         },
         "name": {
           "type": "string"
         }
-      }
-    },
-    "Modules": {
-      "type": "object",
-      "required": [
-        "modules",
-        "notifiers"
-      ],
-      "properties": {
-        "modules": {
-          "$ref": "#/definitions/ModulesList"
-        },
-        "modules_disabled": {
-          "type": [
-            "integer",
-            "null"
-          ],
-          "format": "int64"
-        },
-        "notifiers": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ModuleNotifier"
-          }
-        }
-      }
-    },
-    "ModulesList": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/Module"
       }
     },
     "Mount": {
@@ -1056,12 +881,6 @@
         }
       }
     },
-    "Mounts": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/Mount"
-      }
-    },
     "Namespaces": {
       "type": "object",
       "required": [
@@ -1070,9 +889,7 @@
       ],
       "properties": {
         "addr": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
+          "$ref": "#/definitions/VirtualAddress"
         },
         "cgroup": {
           "anyOf": [
@@ -1131,6 +948,25 @@
         }
       }
     },
+    "Net": {
+      "type": "object",
+      "required": [
+        "count"
+      ],
+      "properties": {
+        "count": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "loopback_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
     "NetNamespace": {
       "type": "object",
       "required": [
@@ -1138,9 +974,7 @@
       ],
       "properties": {
         "addr": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
+          "$ref": "#/definitions/VirtualAddress"
         },
         "count": {
           "type": [
@@ -1151,12 +985,14 @@
           "minimum": 0.0
         },
         "user_namespace_addr": {
-          "type": [
-            "integer",
-            "null"
-          ],
-          "format": "uint",
-          "minimum": 0.0
+          "anyOf": [
+            {
+              "$ref": "#/definitions/VirtualAddress"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       }
     },
@@ -1169,9 +1005,7 @@
       ],
       "properties": {
         "addr": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
+          "$ref": "#/definitions/VirtualAddress"
         },
         "hook_type": {
           "anyOf": [
@@ -1185,21 +1019,7 @@
         },
         "hook_type_id": {
           "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
-        },
-        "name": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "network_id": {
-          "type": [
-            "integer",
-            "null"
-          ],
-          "format": "uint",
+          "format": "uint64",
           "minimum": 0.0
         },
         "protocol": {
@@ -1214,15 +1034,19 @@
         },
         "protocol_id": {
           "type": "integer",
-          "format": "uint",
+          "format": "uint64",
           "minimum": 0.0
+        },
+        "symbol": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Symbol"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
-      }
-    },
-    "NetfilterHooks": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/NetfilterHook"
       }
     },
     "NetfilterInetHook": {
@@ -1235,87 +1059,6 @@
         "NF_INET_POST_ROUTING",
         "NF_INET_INGRESS"
       ]
-    },
-    "NetfilterIssue": {
-      "type": "object",
-      "required": [
-        "addr",
-        "disassembly",
-        "hook_type"
-      ],
-      "properties": {
-        "addr": {
-          "description": "Address of the hooked function",
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
-        },
-        "disassembly": {
-          "description": "disassembly of the hooked function",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "hook_type": {
-          "description": "type of hook",
-          "type": "string"
-        },
-        "netfilter_type": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/NetfilterInetHook"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "network_id": {
-          "type": [
-            "integer",
-            "null"
-          ],
-          "format": "uint",
-          "minimum": 0.0
-        },
-        "protocol": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/NetfilterProtocol"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "target_addr": {
-          "description": "calculated address for the destination of the hook",
-          "type": [
-            "integer",
-            "null"
-          ],
-          "format": "uint",
-          "minimum": 0.0
-        },
-        "target_disassembly": {
-          "description": "disassembly of the destination for the hooked function",
-          "type": [
-            "array",
-            "null"
-          ],
-          "items": {
-            "type": "string"
-          }
-        },
-        "target_module": {
-          "description": "symbol name for the destination for the hooked function if known",
-          "type": [
-            "string",
-            "null"
-          ]
-        }
-      }
     },
     "NetfilterProtocol": {
       "type": "string",
@@ -1335,11 +1078,15 @@
         "arp_table",
         "inet",
         "netfilter_hooks",
+        "nets",
         "unix"
       ],
       "properties": {
         "arp_table": {
-          "$ref": "#/definitions/ArpTable"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ArpEntry"
+          }
         },
         "inet": {
           "type": "array",
@@ -1348,66 +1095,22 @@
           }
         },
         "netfilter_hooks": {
-          "$ref": "#/definitions/NetfilterHooks"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/NetfilterHook"
+          }
+        },
+        "nets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Net"
+          }
         },
         "unix": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/Unix"
           }
-        }
-      }
-    },
-    "PagetableInfo": {
-      "type": "object",
-      "required": [
-        "addr",
-        "level",
-        "nx",
-        "offset",
-        "size",
-        "used",
-        "userland",
-        "writeable"
-      ],
-      "properties": {
-        "addr": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
-        },
-        "level": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
-        },
-        "name": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "nx": {
-          "type": "boolean"
-        },
-        "offset": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
-        },
-        "size": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
-        },
-        "used": {
-          "type": "boolean"
-        },
-        "userland": {
-          "type": "boolean"
-        },
-        "writeable": {
-          "type": "boolean"
         }
       }
     },
@@ -1419,9 +1122,7 @@
       ],
       "properties": {
         "addr": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
+          "$ref": "#/definitions/VirtualAddress"
         },
         "hide_pid": {
           "type": [
@@ -1461,12 +1162,14 @@
           ]
         },
         "user_namespace_addr": {
-          "type": [
-            "integer",
-            "null"
-          ],
-          "format": "uint",
-          "minimum": 0.0
+          "anyOf": [
+            {
+              "$ref": "#/definitions/VirtualAddress"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       }
     },
@@ -1492,6 +1195,47 @@
         }
       }
     },
+    "Symbol": {
+      "description": "Symbol representation",
+      "oneOf": [
+        {
+          "description": "Kernel symbol name",
+          "type": "object",
+          "required": [
+            "Kernel"
+          ],
+          "properties": {
+            "Kernel": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "description": "Kernel module symbol name",
+          "type": "object",
+          "required": [
+            "Module"
+          ],
+          "properties": {
+            "Module": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "maxItems": 2,
+              "minItems": 2
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
     "Syscall": {
       "type": "object",
       "required": [
@@ -1500,15 +1244,7 @@
       ],
       "properties": {
         "addr": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
-        },
-        "function": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "$ref": "#/definitions/VirtualAddress"
         },
         "id": {
           "type": "integer",
@@ -1519,6 +1255,16 @@
           "anyOf": [
             {
               "$ref": "#/definitions/SyscallName"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "symbol": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Symbol"
             },
             {
               "type": "null"
@@ -1882,12 +1628,14 @@
     "SyscallTables": {
       "type": "object",
       "required": [
-        "ia32_sys_call_table",
         "sys_call_table"
       ],
       "properties": {
         "ia32_sys_call_table": {
-          "type": "array",
+          "type": [
+            "array",
+            "null"
+          ],
           "items": {
             "$ref": "#/definitions/Syscall"
           }
@@ -1912,12 +1660,11 @@
         "files",
         "inet_sockets",
         "max_fds",
-        "pagetables",
-        "pgd",
         "pid",
         "ppid",
         "ptrace",
         "real_ppid",
+        "source",
         "start_time",
         "stime",
         "tgid",
@@ -1926,9 +1673,7 @@
       ],
       "properties": {
         "addr": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
+          "$ref": "#/definitions/VirtualAddress"
         },
         "arg": {
           "type": "array",
@@ -1944,12 +1689,14 @@
         },
         "cred_addr": {
           "writeOnly": true,
-          "type": [
-            "integer",
-            "null"
-          ],
-          "format": "uint",
-          "minimum": 0.0
+          "anyOf": [
+            {
+              "$ref": "#/definitions/VirtualAddress"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "css_set": {
           "anyOf": [
@@ -1983,7 +1730,10 @@
           }
         },
         "mapped_files": {
-          "type": "array",
+          "type": [
+            "array",
+            "null"
+          ],
           "items": {
             "$ref": "#/definitions/MappedFile"
           }
@@ -2002,18 +1752,6 @@
               "type": "null"
             }
           ]
-        },
-        "pagetables": {
-          "writeOnly": true,
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/PagetableInfo"
-          }
-        },
-        "pgd": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
         },
         "pid": {
           "type": "integer",
@@ -2042,12 +1780,14 @@
         },
         "real_cred_addr": {
           "writeOnly": true,
-          "type": [
-            "integer",
-            "null"
-          ],
-          "format": "uint",
-          "minimum": 0.0
+          "anyOf": [
+            {
+              "$ref": "#/definitions/VirtualAddress"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "real_ppid": {
           "type": "integer",
@@ -2072,6 +1812,13 @@
             "format": "uint64",
             "minimum": 0.0
           }
+        },
+        "source": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TaskSource"
+          },
+          "uniqueItems": true
         },
         "start_time": {
           "type": "integer",
@@ -2098,6 +1845,16 @@
           "type": "integer",
           "format": "uint64",
           "minimum": 0.0
+        },
+        "vma": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/VMA"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       }
     },
@@ -2118,39 +1875,15 @@
         }
       }
     },
-    "Tasks": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/Task"
-      }
-    },
-    "UnexpectedNotifier": {
-      "type": "object",
-      "required": [
-        "callback_addr",
-        "priority"
-      ],
-      "properties": {
-        "callback_addr": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
-        },
-        "callback_name": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/CallbackSymbol"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "priority": {
-          "type": "integer",
-          "format": "int64"
-        }
-      }
+    "TaskSource": {
+      "type": "string",
+      "enum": [
+        "TaskList",
+        "ThreadGroup",
+        "ThreadNode",
+        "TaskChildren",
+        "TaskSibling"
+      ]
     },
     "Unix": {
       "type": "object",
@@ -2182,57 +1915,6 @@
         },
         "socket_type": {
           "$ref": "#/definitions/sock_types"
-        }
-      }
-    },
-    "UnlinkedModule": {
-      "type": "object",
-      "required": [
-        "core_addr",
-        "core_size",
-        "init_addr",
-        "init_size",
-        "name",
-        "source"
-      ],
-      "properties": {
-        "core_addr": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
-        },
-        "core_artifact_name": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "core_size": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
-        },
-        "init_addr": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
-        },
-        "init_artifact_name": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "init_size": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
-        },
-        "name": {
-          "type": "string"
-        },
-        "source": {
-          "$ref": "#/definitions/ModuleSource"
         }
       }
     },
@@ -2290,15 +1972,66 @@
           "minimum": 0.0
         },
         "user_namespace_addr": {
-          "type": [
-            "integer",
-            "null"
-          ],
-          "format": "uint",
-          "minimum": 0.0
+          "anyOf": [
+            {
+              "$ref": "#/definitions/VirtualAddress"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "uts_name": {
           "$ref": "#/definitions/UtsName"
+        }
+      }
+    },
+    "VMA": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/VmaEntry"
+      }
+    },
+    "VirtualAddress": {
+      "description": "Virtual Memory Address",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
+    },
+    "VmaEntry": {
+      "type": "object",
+      "required": [
+        "flags",
+        "offset",
+        "prot",
+        "vm_end",
+        "vm_start"
+      ],
+      "properties": {
+        "filename": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "flags": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "offset": {
+          "$ref": "#/definitions/VirtualAddress"
+        },
+        "prot": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "vm_end": {
+          "$ref": "#/definitions/VirtualAddress"
+        },
+        "vm_start": {
+          "$ref": "#/definitions/VirtualAddress"
         }
       }
     },

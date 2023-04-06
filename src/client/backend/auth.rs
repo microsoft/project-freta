@@ -11,11 +11,11 @@ use azure_identity::{
     refresh_token,
 };
 use futures::stream::StreamExt;
-use log::{error, warn};
 use serde::{Deserialize, Serialize};
 use std::{path::PathBuf, time::Duration};
 use time::OffsetDateTime;
 use tokio::fs;
+use tracing::{error, warn};
 
 /// Developers of the Freta service use this URL as a for a local instance using
 /// the Azure Functions Core Tools, which does not provide authentication.  As

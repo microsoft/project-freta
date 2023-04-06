@@ -8,3 +8,6 @@ pub mod service;
 
 /// Models for Freta webhooks
 pub mod webhooks;
+
+/// Models for Freta analysis
+pub mod analysis;
