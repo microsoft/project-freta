@@ -8,6 +8,8 @@ pub(crate) mod backend;
 pub(crate) mod config;
 /// client error types
 pub(crate) mod error;
+/// internal IO wrappers
+pub(crate) mod io;
 
 use crate::{
     client::{
@@ -19,6 +21,7 @@ use crate::{
         },
         config::Config,
         error::{Error, Result},
+        io::open_file,
     },
     models::{
         base::{Image, ImageFormat, ImageId, ImageState, OwnerId},
@@ -44,7 +47,7 @@ use std::{
     pin::Pin,
     time::Duration,
 };
-use tokio::{fs::File, time::sleep};
+use tokio::time::sleep;
 use tracing::{debug, info};
 use url::Url;
 
@@ -80,7 +83,7 @@ impl Client {
     /// This function will return an error if creating the backend REST API
     /// client fails
     pub async fn new() -> Result<Self> {
-        Self::with_config(Config::load_or_default().await?).await
+        Self::with_config(Config::load().await?).await
     }
 
     /// Create a new client for the Freta service with a configuration
@@ -256,7 +259,7 @@ impl Client {
         V: Into<String>,
     {
         debug!("uploading {}", path.as_ref().display());
-        let handle = File::open(path).await?;
+        let handle = open_file(path).await?;
 
         let image = self.images_create(format, tags).await?;
 
@@ -391,11 +394,11 @@ impl Client {
     ///    should always be returned when getting the metadata for a single
     ///    image.
     async fn artifacts_get_sas(&self, image_id: ImageId) -> Result<Url> {
-        let image = self.images_get(image_id).await?;
+        let image = self.images_monitor(image_id).await?;
         let Some(image_url) = image.artifacts_url else {
-                return Err(Error::InvalidResponse(
-                    "missing artifacts_url from the response",
-                ))
+            return Err(Error::InvalidResponse(
+                "missing artifacts_url from the response",
+            ))
         };
 
         Ok(image_url)
@@ -519,12 +522,16 @@ impl Client {
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn images_monitor(&self, image_id: ImageId) -> Result<()> {
+    pub async fn images_monitor(&self, image_id: ImageId) -> Result<Image> {
         let mut image = self.images_get(image_id).await?;
-        let mut prev_state = image.state.clone();
-        let mut first = true;
+        if image.state == ImageState::Completed {
+            return Ok(image);
+        }
+
+        // This will ensure we print the current state at the start of the loop
+        let mut prev_state = ImageState::Completed;
         loop {
-            if image.state != prev_state || first {
+            if image.state != prev_state {
                 match image.state {
                     ImageState::Completed => {
                         info!("analysis completed");
@@ -550,9 +557,8 @@ impl Client {
 
             prev_state = image.state;
             image = self.images_get(image_id).await?;
-            first = false;
         }
-        Ok(())
+        Ok(image)
     }
 
     /// List the configured webhooks

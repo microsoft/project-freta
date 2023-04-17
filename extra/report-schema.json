@@ -1114,6 +1114,22 @@
         }
       }
     },
+    "PageFlag": {
+      "description": "VMA flags\n\nNot all available VM flags are represented here, as these change over time. The values extracted have been consistent from 2.6.39 until 6.2.10\n\nRef: <https://elixir.bootlin.com/linux/v2.6.39.4/source/include/linux/mm.h> Ref: <https://elixir.bootlin.com/linux/v6.2.10/source/include/linux/mm.h>",
+      "type": "string",
+      "enum": [
+        "Read",
+        "Write",
+        "Exec",
+        "Shared",
+        "MayRead",
+        "MayWrite",
+        "MayExec",
+        "MayShare",
+        "Locked",
+        "Io"
+      ]
+    },
     "PidNamespace": {
       "type": "object",
       "required": [
@@ -2004,6 +2020,7 @@
         "flags",
         "offset",
         "prot",
+        "raw_flags",
         "vm_end",
         "vm_start"
       ],
@@ -2015,14 +2032,20 @@
           ]
         },
         "flags": {
-          "type": "integer",
-          "format": "uint64",
-          "minimum": 0.0
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PageFlag"
+          }
         },
         "offset": {
           "$ref": "#/definitions/VirtualAddress"
         },
         "prot": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "raw_flags": {
           "type": "integer",
           "format": "uint64",
           "minimum": 0.0

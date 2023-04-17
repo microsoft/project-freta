@@ -3,6 +3,7 @@
 use crate::client::{
     config::{get_config_dir, ClientId, Config, Secret},
     error::{Error, Result},
+    io::{read_json, remove_file, write_json},
 };
 use azure_core::{auth::AccessToken, new_http_client};
 use azure_identity::{
@@ -14,7 +15,6 @@ use futures::stream::StreamExt;
 use serde::{Deserialize, Serialize};
 use std::{path::PathBuf, time::Duration};
 use time::OffsetDateTime;
-use tokio::fs;
 use tracing::{error, warn};
 
 /// Developers of the Freta service use this URL as a for a local instance using
@@ -247,8 +247,7 @@ impl Auth {
     async fn save(&self, config: &Config) -> Result<()> {
         if !config.ignore_login_cache {
             let path = Self::get_path()?;
-            let contents = serde_json::to_string_pretty(self)?;
-            fs::write(&path, contents).await?;
+            write_json(path, self).await?;
         }
         Ok(())
     }
@@ -257,7 +256,7 @@ impl Auth {
     pub(crate) async fn logout() -> Result<()> {
         let path = Self::get_path()?;
         if path.exists() {
-            fs::remove_file(&path).await?;
+            remove_file(path).await?;
         }
         Ok(())
     }
@@ -265,7 +264,6 @@ impl Auth {
     /// Load the cached authentication from disk.
     async fn from_cache() -> Result<Self> {
         let path = Self::get_path()?;
-        let contents = fs::read_to_string(&path).await?;
-        Ok(serde_json::from_str(&contents)?)
+        read_json(path).await
     }
 }

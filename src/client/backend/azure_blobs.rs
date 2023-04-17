@@ -1,6 +1,6 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 
-use crate::client::error::Result;
+use crate::client::error::{io_err, Result};
 use azure_storage_blobs::prelude::*;
 use bytes::Bytes;
 use futures::stream::StreamExt;
@@ -14,7 +14,11 @@ use url::Url;
 
 /// Upload a file to Azure Blob Storage
 pub(crate) async fn blob_upload(mut handle: File, sas: Url) -> Result<()> {
-    let size = handle.metadata().await?.len();
+    let size = handle
+        .metadata()
+        .await
+        .map_err(|e| io_err("reading file size", e))?
+        .len();
 
     let block_size = std::cmp::max(1024 * 1024 * 10, size / 50_000);
     let block_size_usize = block_size.try_into()?;
@@ -32,7 +36,10 @@ pub(crate) async fn blob_upload(mut handle: File, sas: Url) -> Result<()> {
     for i in 0..usize::MAX {
         let mut data = Vec::with_capacity(block_size_usize);
         let mut take_handle = handle.take(block_size);
-        let read_data = take_handle.read_to_end(&mut data).await?;
+        let read_data = take_handle
+            .read_to_end(&mut data)
+            .await
+            .map_err(|e| io_err("reading block", e))?;
         if read_data == 0 {
             break;
         }
@@ -93,14 +100,18 @@ where
     let blob_client = BlobClient::from_sas_url(blob_url)?;
     let mut stream = blob_client.get().into_stream();
 
-    let mut file = File::create(filename).await?;
+    let mut file = File::create(filename)
+        .await
+        .map_err(|e| io_err(format!("creating file: {filename:?}"), e))?;
     while let Some(chunk) = stream.next().await {
         let chunk = chunk?;
         let mut body = chunk.data;
 
         while let Some(value) = body.next().await {
             let value = value?;
-            file.write_all(&value).await?;
+            file.write_all(&value)
+                .await
+                .map_err(|e| io_err(format!("writing blob: {filename:?}"), e))?;
         }
     }
 
@@ -121,14 +132,18 @@ where
     let blob_client = blob_client(container_sas, name)?;
     let mut stream = blob_client.get().into_stream();
 
-    let mut file = File::create(filename).await?;
+    let mut file = File::create(filename)
+        .await
+        .map_err(|e| io_err(format!("creating file: {filename:?}"), e))?;
     while let Some(chunk) = stream.next().await {
         let chunk = chunk?;
         let mut body = chunk.data;
 
         while let Some(value) = body.next().await {
             let value = value?;
-            file.write_all(&value).await?;
+            file.write_all(&value)
+                .await
+                .map_err(|e| io_err(format!("writing blob: {filename:?}"), e))?;
         }
     }
 
