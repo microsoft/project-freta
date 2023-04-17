@@ -72,7 +72,7 @@ use serde::ser::{SerializeSeq, Serializer};
 use serde_json::{ser::PrettyFormatter, Value};
 use std::{
     fmt::{Display, Formatter},
-    io::stderr,
+    io::{stderr, stdout},
     path::PathBuf,
     pin::Pin,
 };
@@ -415,12 +415,12 @@ enum ConfigCommands {
 async fn config(subcommands: ConfigCommands) -> Result<()> {
     let config = match subcommands {
         ConfigCommands::Reset => {
-            let config = Config::new()?;
+            let config = Config::default();
             config.save().await?;
             info!("config reset");
             config
         }
-        ConfigCommands::Get => Config::load_or_default().await?,
+        ConfigCommands::Get => Config::load().await?,
         ConfigCommands::Update {
             tenant_id,
             client_id,
@@ -429,7 +429,7 @@ async fn config(subcommands: ConfigCommands) -> Result<()> {
             scope,
             ignore_login_cache,
         } => {
-            let mut config = Config::load_or_default().await?;
+            let mut config = Config::load().await?;
 
             if let Some(tenant_id) = tenant_id {
                 config.tenant_id = tenant_id;
@@ -492,7 +492,7 @@ async fn artifacts(subcommands: ArtifactsCommands) -> Result<()> {
                 client.artifacts_download(image_id, path, output).await
             } else {
                 let blob = client.artifacts_get(image_id, path).await?;
-                io::stdout().write_all(&blob).await?;
+                write_stdout(&blob).await?;
                 Ok(())
             }
         }
@@ -572,7 +572,7 @@ async fn images(subcommands: ImagesCommands) -> Result<()> {
                 client.images_monitor(image.image_id).await?;
                 if show_result {
                     let result = client.artifacts_get(image.image_id, "report.json").await?;
-                    io::stdout().write_all(&result).await?;
+                    write_stdout(&result).await?;
                 }
             }
             Ok(())
@@ -595,6 +595,14 @@ async fn images(subcommands: ImagesCommands) -> Result<()> {
     }
 }
 
+/// helper function to write to stdout
+async fn write_stdout(data: &[u8]) -> Result<()> {
+    io::stdout().write_all(data).await.map_err(|e| Error::Io {
+        message: "writing to stdout".into(),
+        source: e,
+    })
+}
+
 /// perform eula subcommands
 ///
 /// # Errors
@@ -608,7 +616,7 @@ async fn eula(opts: EulaCommands) -> Result<()> {
     match opts {
         EulaCommands::Get => {
             let eula = client.eula().await?;
-            io::stdout().write_all(&eula).await?;
+            write_stdout(&eula).await?;
         }
         EulaCommands::Accept => {
             let info = client.info().await?;
@@ -658,7 +666,7 @@ async fn webhooks(subcommands: WebhooksCommands) -> Result<()> {
         }
         WebhooksCommands::Ping { webhook_id } => {
             let result = client.webhook_ping(webhook_id).await?;
-            io::stdout().write_all(&result).await?;
+            write_stdout(&result).await?;
             Ok(())
         }
         WebhooksCommands::Update {
@@ -698,8 +706,7 @@ fn print_data<D>(data: D) -> Result<()>
 where
     D: serde::Serialize,
 {
-    let json = serde_json::to_string_pretty(&data)?;
-    println!("{json}");
+    serde_json::to_writer_pretty(stdout(), &data)?;
     Ok(())
 }
 
@@ -759,7 +766,10 @@ where
 
     let table = table.table().title(title).bold(true);
 
-    print_stdout(table)?;
+    print_stdout(table).map_err(|e| Error::Io {
+        message: "writing result table".into(),
+        source: e,
+    })?;
 
     Ok(())
 }

@@ -3,6 +3,7 @@
 #![deny(clippy::integer_arithmetic)]
 
 use core::ops::{Add, AddAssign, Sub, SubAssign};
+use num_traits::{CheckedAdd, CheckedSub, WrappingAdd, WrappingSub};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Debug, Display, Formatter, Result};
@@ -33,39 +34,29 @@ impl VirtualAddress {
     pub const fn from_le_bytes(bytes: [u8; 8]) -> Self {
         Self(u64::from_le_bytes(bytes))
     }
+}
 
-    /// Wrapping (modular) addition. Computes self + rhs, wrapping around at the boundary of the type.
-    #[must_use]
-    pub fn wrapping_add<T>(&self, rhs: T) -> Self
-    where
-        T: Into<Self>,
-    {
-        Self(self.0.wrapping_add(rhs.into().0))
+impl WrappingAdd for VirtualAddress {
+    fn wrapping_add(&self, v: &Self) -> Self {
+        Self(self.0.wrapping_add(v.0))
     }
+}
 
-    /// Wrapping (modular) subtraction. Computes self - rhs, wrapping around at the boundary of the type.
-    #[must_use]
-    pub fn wrapping_sub<T>(&self, rhs: T) -> Self
-    where
-        T: Into<Self>,
-    {
-        Self(self.0.wrapping_sub(rhs.into().0))
+impl WrappingSub for VirtualAddress {
+    fn wrapping_sub(&self, v: &Self) -> Self {
+        Self(self.0.wrapping_sub(v.0))
     }
+}
 
-    /// Checked integer addition. Computes self + rhs, returning None if overflow occurred.
-    pub fn checked_add<T>(&self, rhs: T) -> Option<Self>
-    where
-        T: Into<Self>,
-    {
-        self.0.checked_add(rhs.into().0).map(Self)
+impl CheckedAdd for VirtualAddress {
+    fn checked_add(&self, v: &Self) -> Option<Self> {
+        self.0.checked_add(v.0).map(Self)
     }
+}
 
-    /// Checked integer subtraction. Computes self - rhs, returning None if overflow occurred.
-    pub fn checked_sub<T>(&self, rhs: T) -> Option<Self>
-    where
-        T: Into<Self>,
-    {
-        self.0.checked_add(rhs.into().0).map(Self)
+impl CheckedSub for VirtualAddress {
+    fn checked_sub(&self, v: &Self) -> Option<Self> {
+        self.0.checked_sub(v.0).map(Self)
     }
 }
 
@@ -114,7 +105,7 @@ where
     type Output = VirtualAddress;
     // Explicitly wrap additions by design
     fn add(self, value: T) -> Self::Output {
-        self.wrapping_add(value.into())
+        self.wrapping_add(&value.into())
     }
 }
 
@@ -123,7 +114,7 @@ where
     T: Into<VirtualAddress>,
 {
     fn add_assign(&mut self, rhs: T) {
-        *self = self.wrapping_add(rhs.into());
+        *self = self.wrapping_add(&rhs.into());
     }
 }
 
@@ -132,7 +123,7 @@ where
     T: Into<VirtualAddress>,
 {
     fn sub_assign(&mut self, rhs: T) {
-        *self = self.wrapping_sub(rhs.into());
+        *self = self.wrapping_sub(&rhs.into());
     }
 }
 
@@ -143,7 +134,7 @@ where
     type Output = VirtualAddress;
     // Explicitly wrap subtractions by design
     fn sub(self, rhs: I) -> Self::Output {
-        self.wrapping_sub(rhs.into())
+        self.wrapping_sub(&rhs.into())
     }
 }
 
@@ -151,6 +142,12 @@ impl From<VirtualAddress> for usize {
     #[allow(clippy::cast_possible_truncation)]
     fn from(value: VirtualAddress) -> Self {
         value.0 as usize
+    }
+}
+
+impl From<VirtualAddress> for u64 {
+    fn from(value: VirtualAddress) -> Self {
+        value.0
     }
 }
 

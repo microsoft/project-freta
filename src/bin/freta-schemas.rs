@@ -31,7 +31,13 @@ struct Config {
 }
 
 fn get_existing(path: &PathBuf) -> Result<RootSchema> {
-    let file = OpenOptions::new().read(true).open(path)?;
+    let file = OpenOptions::new()
+        .read(true)
+        .open(path)
+        .map_err(|e| Error::Io {
+            message: format!("reading schema: {path:?}").into(),
+            source: e,
+        })?;
     let result = serde_json::from_reader(file)?;
     Ok(result)
 }
@@ -41,7 +47,11 @@ fn write_schema(schema: &RootSchema, path: &PathBuf) -> Result<()> {
         .create(true)
         .write(true)
         .truncate(true)
-        .open(path)?;
+        .open(path)
+        .map_err(|e| Error::Io {
+            message: format!("writing schema: {path:?}").into(),
+            source: e,
+        })?;
     serde_json::to_writer_pretty(file, &schema)?;
     Ok(())
 }

@@ -18,8 +18,14 @@ pub enum Error {
     Serialization(#[from] serde_json::Error),
 
     /// IO Errors
-    #[error("IO Error")]
-    Io(#[from] std::io::Error),
+    #[error("IO Error {message}")]
+    Io {
+        /// Error Message
+        message: Cow<'static, str>,
+        #[source]
+        /// Underlying IO Error
+        source: std::io::Error,
+    },
 
     /// The service responded in an unexpected fashion
     #[error("invalid response from the freta service: {0}")]
@@ -99,5 +105,16 @@ fn format_error(e: &impl std::error::Error, f: &mut std::fmt::Formatter) -> std:
 impl std::fmt::Debug for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         format_error(self, f)
+    }
+}
+
+/// helper function to map `std::io::Error` to `Error`
+pub(crate) fn io_err<S>(message: S, source: std::io::Error) -> Error
+where
+    S: Into<Cow<'static, str>>,
+{
+    Error::Io {
+        message: message.into(),
+        source,
     }
 }

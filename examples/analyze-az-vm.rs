@@ -12,7 +12,7 @@ use azure_mgmt_compute::models::{
 use clap::Parser;
 use freta::{argparse::parse_key_val, Client, Error, ImageFormat, Result};
 use serde_json::json;
-use std::{io::stderr, sync::Arc};
+use std::{io::stderr, path::PathBuf, sync::Arc};
 use tracing::{info, level_filters::LevelFilter};
 use tracing_subscriber::EnvFilter;
 use uuid::Uuid;
@@ -33,8 +33,8 @@ struct Args {
     tags: Option<Vec<(String, String)>>,
 
     #[arg(long)]
-    /// after the VM is uploaded, monitor the analysis until it's compute
-    monitor: bool,
+    /// after the analysis is complete, download the report to the specified file
+    output: Option<PathBuf>,
 }
 
 #[tokio::main]
@@ -110,8 +110,10 @@ async fn main() -> Result<()> {
         )
         .await?;
 
-    if cmd.monitor {
-        client.images_monitor(image.image_id).await?;
+    if let Some(output) = cmd.output {
+        client
+            .artifacts_download(image.image_id, "report.json", output)
+            .await?;
     }
     Ok(())
 }
