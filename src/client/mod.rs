@@ -373,11 +373,11 @@ impl Client {
     where
         P: AsRef<Path>,
     {
-        let image = self.images_get(image_id).await?;
+        let image = self.images_monitor(image_id).await?;
         let Some(image_url) = image.image_url else {
-                return Err(Error::InvalidResponse(
-                    "service did not provide image_url in the response"
-                ))
+            return Err(Error::InvalidResponse(
+                "service did not provide image_url in the response"
+            ))
         };
         blob_download(&image_url, output).await?;
         Ok(())

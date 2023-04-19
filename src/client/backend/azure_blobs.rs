@@ -98,6 +98,20 @@ where
 {
     let filename = filename.as_ref();
     let blob_client = BlobClient::from_sas_url(blob_url)?;
+    let size = blob_client
+        .get_properties()
+        .await?
+        .blob
+        .properties
+        .content_length;
+
+    let style = ProgressStyle::with_template(
+        "[{elapsed_precise}] [eta:{eta}] [{wide_bar}] {bytes}/{total_bytes} ({bytes_per_sec})",
+    )?;
+    let status = ProgressBar::with_draw_target(Some(size), ProgressDrawTarget::stderr_with_hz(1))
+        .with_style(style)
+        .with_finish(ProgressFinish::AndLeave);
+
     let mut stream = blob_client.get().into_stream();
 
     let mut file = File::create(filename)
@@ -112,6 +126,7 @@ where
             file.write_all(&value)
                 .await
                 .map_err(|e| io_err(format!("writing blob: {filename:?}"), e))?;
+            status.inc(value.len() as u64);
         }
     }
 
