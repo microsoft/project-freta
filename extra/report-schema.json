@@ -2,121 +2,97 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Analysis",
   "type": "object",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "info",
+        "initial_namespaces",
+        "interrupt_table",
+        "kernel_modules",
+        "mounts",
+        "networks",
+        "os",
+        "syscall_tables",
+        "tasks"
+      ],
+      "properties": {
+        "block_cgroups": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/BlockCgroups"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "info": {
+          "$ref": "#/definitions/Info"
+        },
+        "initial_namespaces": {
+          "$ref": "#/definitions/Namespaces"
+        },
+        "interrupt_table": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/IdtEntry"
+          }
+        },
+        "kernel_modules": {
+          "$ref": "#/definitions/KernelModules"
+        },
+        "mounts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Mount"
+          }
+        },
+        "networks": {
+          "$ref": "#/definitions/Networks"
+        },
+        "os": {
+          "type": "string",
+          "enum": [
+            "Linux"
+          ]
+        },
+        "syscall_tables": {
+          "$ref": "#/definitions/SyscallTables"
+        },
+        "tasks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Task"
+          }
+        }
+      }
+    }
+  ],
   "required": [
     "analysis_info",
-    "checks",
-    "info",
-    "initial_namespaces",
-    "interrupt_table",
-    "kernel_modules",
-    "mounts",
-    "networks",
-    "syscall_tables",
-    "tasks"
+    "checks"
   ],
   "properties": {
     "analysis_info": {
       "$ref": "#/definitions/AnalysisInfo"
-    },
-    "block_cgroups": {
-      "anyOf": [
-        {
-          "$ref": "#/definitions/BlockCgroups"
-        },
-        {
-          "type": "null"
-        }
-      ]
     },
     "checks": {
       "type": "array",
       "items": {
         "$ref": "#/definitions/Check"
       }
-    },
-    "info": {
-      "$ref": "#/definitions/Info"
-    },
-    "initial_namespaces": {
-      "$ref": "#/definitions/Namespaces"
-    },
-    "interrupt_table": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/IdtEntry"
-      }
-    },
-    "kernel_modules": {
-      "$ref": "#/definitions/KernelModules"
-    },
-    "mounts": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/Mount"
-      }
-    },
-    "networks": {
-      "$ref": "#/definitions/Networks"
-    },
-    "syscall_tables": {
-      "$ref": "#/definitions/SyscallTables"
-    },
-    "tasks": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/Task"
-      }
     }
   },
   "definitions": {
-    "Address": {
-      "oneOf": [
-        {
-          "type": "string",
-          "enum": [
-            "None"
-          ]
-        },
-        {
-          "type": "object",
-          "required": [
-            "IPV4"
-          ],
-          "properties": {
-            "IPV4": {
-              "type": "string",
-              "format": "ipv4"
-            }
-          },
-          "additionalProperties": false
-        },
-        {
-          "type": "object",
-          "required": [
-            "IPV6"
-          ],
-          "properties": {
-            "IPV6": {
-              "type": "string",
-              "format": "ipv6"
-            }
-          },
-          "additionalProperties": false
-        }
-      ]
-    },
     "AnalysisInfo": {
       "type": "object",
       "required": [
         "analysis_version",
-        "symbols_version",
         "tags"
       ],
       "properties": {
         "analysis_version": {
-          "type": "string"
-        },
-        "symbols_version": {
           "type": "string"
         },
         "tags": {
@@ -133,7 +109,6 @@
         "dead",
         "dev_name",
         "dev_type",
-        "ip",
         "mac",
         "probes",
         "updated",
@@ -155,7 +130,11 @@
           "minimum": 0.0
         },
         "ip": {
-          "$ref": "#/definitions/Address"
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "ip"
         },
         "mac": {
           "type": "string"
@@ -425,7 +404,8 @@
       "type": "object",
       "required": [
         "address",
-        "fd",
+        "mode",
+        "mode_raw",
         "offset",
         "path"
       ],
@@ -434,16 +414,38 @@
           "$ref": "#/definitions/VirtualAddress"
         },
         "fd": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
-        },
-        "inode": {
           "type": [
             "integer",
             "null"
           ],
-          "format": "uint64",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "fs_type": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "inode": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Inode"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "mode": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Mode"
+          }
+        },
+        "mode_raw": {
+          "type": "integer",
+          "format": "uint32",
           "minimum": 0.0
         },
         "offset": {
@@ -453,13 +455,36 @@
         },
         "path": {
           "type": "string"
+        }
+      }
+    },
+    "Filter": {
+      "type": "object",
+      "required": [
+        "code",
+        "jump_false",
+        "jump_true",
+        "option"
+      ],
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "uint16",
+          "minimum": 0.0
         },
-        "size": {
-          "type": [
-            "integer",
-            "null"
-          ],
-          "format": "uint64",
+        "jump_false": {
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "jump_true": {
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "option": {
+          "type": "integer",
+          "format": "uint32",
           "minimum": 0.0
         }
       }
@@ -572,7 +597,8 @@
       ],
       "properties": {
         "dst_addr": {
-          "$ref": "#/definitions/Address"
+          "type": "string",
+          "format": "ip"
         },
         "dst_port": {
           "type": "integer",
@@ -592,7 +618,8 @@
           "$ref": "#/definitions/sock_types"
         },
         "src_addr": {
-          "$ref": "#/definitions/Address"
+          "type": "string",
+          "format": "ip"
         },
         "src_port": {
           "type": "integer",
@@ -627,6 +654,61 @@
         },
         "memory_info": {
           "$ref": "#/definitions/MemoryInfo"
+        }
+      }
+    },
+    "Inode": {
+      "type": "object",
+      "required": [
+        "atime",
+        "ctime",
+        "flags",
+        "gid",
+        "ino",
+        "mtime",
+        "size",
+        "uid"
+      ],
+      "properties": {
+        "atime": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "ctime": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "flags": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "gid": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "ino": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "mtime": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "size": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "uid": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
         }
       }
     },
@@ -729,6 +811,24 @@
         }
       }
     },
+    "Mode": {
+      "type": "string",
+      "enum": [
+        "Read",
+        "Write",
+        "Seekable",
+        "Pread",
+        "Pwrite",
+        "Exec",
+        "Ndelay",
+        "Excl",
+        "WriteIoctl",
+        "Hash32bit",
+        "Hash64bit",
+        "Nocmtime",
+        "Path"
+      ]
+    },
     "Module": {
       "type": "object",
       "required": [
@@ -758,9 +858,12 @@
         },
         "core_artifact_name": {
           "type": [
-            "string",
+            "array",
             "null"
-          ]
+          ],
+          "items": {
+            "type": "string"
+          }
         },
         "core_size": {
           "type": "integer",
@@ -772,9 +875,12 @@
         },
         "init_artifact_name": {
           "type": [
-            "string",
+            "array",
             "null"
-          ]
+          ],
+          "items": {
+            "type": "string"
+          }
         },
         "init_size": {
           "type": "integer",
@@ -1079,6 +1185,7 @@
         "inet",
         "netfilter_hooks",
         "nets",
+        "packet",
         "unix"
       ],
       "properties": {
@@ -1106,11 +1213,37 @@
             "$ref": "#/definitions/Net"
           }
         },
+        "packet": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Packet"
+          }
+        },
         "unix": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/Unix"
           }
+        }
+      }
+    },
+    "Packet": {
+      "type": "object",
+      "required": [
+        "socket_type"
+      ],
+      "properties": {
+        "original_filter": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/Filter"
+          }
+        },
+        "socket_type": {
+          "$ref": "#/definitions/sock_types"
         }
       }
     },
@@ -1676,6 +1809,7 @@
         "files",
         "inet_sockets",
         "max_fds",
+        "packet_sockets",
         "pid",
         "ppid",
         "ptrace",
@@ -1733,6 +1867,16 @@
             "type": "string"
           }
         },
+        "exe": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/File"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "files": {
           "type": "array",
           "items": {
@@ -1768,6 +1912,12 @@
               "type": "null"
             }
           ]
+        },
+        "packet_sockets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Packet"
+          }
         },
         "pid": {
           "type": "integer",
@@ -2076,7 +2226,8 @@
         "LX_AF_UNIX",
         "LX_AF_INET",
         "LX_AF_INET6",
-        "LX_AF_NETLINK"
+        "LX_AF_NETLINK",
+        "LX_AF_PACKET"
       ]
     },
     "sock_types": {
