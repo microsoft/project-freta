@@ -344,7 +344,7 @@ enum ImagesCommands {
         monitor: bool,
 
         #[clap(long)]
-        /// show result (after monitoring)
+        /// monitor until completed and then emit the analysis result
         show_result: bool,
 
         #[clap(long, value_name = "KEY=VALUE", value_parser = parse_key_val::<String, String>, action = clap::ArgAction::Append)]
@@ -568,12 +568,12 @@ async fn images(subcommands: ImagesCommands) -> Result<()> {
             let image = client
                 .images_upload(format, tags.unwrap_or_default(), &path)
                 .await?;
-            if monitor {
+            if monitor || show_result {
                 client.images_monitor(image.image_id).await?;
-                if show_result {
-                    let result = client.artifacts_get(image.image_id, "report.json").await?;
-                    write_stdout(&result).await?;
-                }
+            }
+            if show_result {
+                let result = client.artifacts_get(image.image_id, "report.json").await?;
+                write_stdout(&result).await?;
             }
             Ok(())
         }

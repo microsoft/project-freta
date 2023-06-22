@@ -1,6 +1,6 @@
 [package]
 name = "freta"
-version = "0.20.0"
+version = "0.21.0"
 edition = "2021"
 license = "MIT"
 description = "Project Freta client"
@@ -39,10 +39,10 @@ clap = {version="4.3", features=["derive", "env"]}
 futures = "0.3"
 serde = {version="1.0", features=["derive"]}
 serde_json = "1.0"
-strum = "0.24"
-strum_macros = "0.24"
+strum = "0.25"
+strum_macros = "0.25"
 time = "0.3"
-url = "2.3"
+url = "2.4"
 schemars = {version="0.8", features=["uuid1"]}
 getrandom = "0.2"
 tracing = {version="0.1", features=["log"]}
@@ -76,7 +76,7 @@ project-root = "0.2"
 [dev-dependencies]
 azure_mgmt_compute = "0.12"
 powershell_script = "1.1"
-insta = {version="1.29", features=["json"]}
+insta = {version="1.30", features=["json"]}
 axum = {version="0.6", features=["headers"]}
 
 [[bin]]

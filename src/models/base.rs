@@ -173,6 +173,8 @@ pub enum ImageFormat {
     Core,
     /// Internal memory snapshot feature
     Avmh,
+    /// Page Dump, as created by `.dump /f <filename>` in WinDbg
+    Pagedump,
 }
 
 /// Error converting a string into an `ImageFormat`
@@ -194,6 +196,7 @@ impl FromStr for ImageFormat {
             "lime" => Self::Lime,
             "core" => Self::Core,
             "avmh" => Self::Avmh,
+            "dmp" => Self::Pagedump,
             _ => return Err(ParseError {}),
         };
         Ok(x)
@@ -208,6 +211,7 @@ impl Display for ImageFormat {
             Self::Lime => write!(f, "lime"),
             Self::Core => write!(f, "core"),
             Self::Avmh => write!(f, "avmh"),
+            Self::Pagedump => write!(f, "dmp"),
         }
     }
 }
