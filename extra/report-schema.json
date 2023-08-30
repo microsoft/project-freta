@@ -95,6 +95,12 @@
         "analysis_version": {
           "type": "string"
         },
+        "detection_versions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "tags": {
           "type": "object",
           "additionalProperties": {
@@ -285,6 +291,13 @@
           "description": "disassembly of the hooked function",
           "type": "string"
         },
+        "exported_path": {
+          "description": "Export path",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "hook_type": {
           "description": "type of hook",
           "type": "string"
@@ -305,7 +318,7 @@
           "type": "array",
           "items": {
             "type": "integer",
-            "format": "uint32",
+            "format": "uint64",
             "minimum": 0.0
           }
         },
@@ -647,7 +660,7 @@
           "minimum": 0.0
         },
         "kernel_pml4": {
-          "$ref": "#/definitions/VirtualAddress"
+          "$ref": "#/definitions/PhysicalAddress"
         },
         "machine": {
           "$ref": "#/definitions/UtsName"
@@ -743,11 +756,11 @@
     "MappedFile": {
       "type": "object",
       "required": [
-        "exported_name",
         "name"
       ],
       "properties": {
-        "exported_name": {
+        "exported_path": {
+          "default": "",
           "type": "string"
         },
         "name": {
@@ -1262,6 +1275,12 @@
         "Locked",
         "Io"
       ]
+    },
+    "PhysicalAddress": {
+      "description": "Physical Memory Address\n\nA `PhysicalAddress` represents a valid address in a physical memory address space (`PhysicalMemory`). The design intends to reduce the amount of validation required by restricting instances of `PhysicalAddress` to be valid with respect to a specific address space.\n\nConstruction of new `PhysicalAddress` instances can be done by invoking the `PhysicalMemory::address` function.",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
     },
     "PidNamespace": {
       "type": "object",

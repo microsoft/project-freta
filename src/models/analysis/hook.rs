@@ -1,11 +1,12 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 
 use crate::models::analysis::{memory::VirtualAddress, symbols::Symbol};
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 /// An issue found in the analysis of a Freta snapshot
-#[derive(Serialize, Deserialize, JsonSchema, Debug, Default)]
+#[cfg_attr(feature = "proptest", derive(proptest_derive::Arbitrary))]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Check {
     /// Basic information about the issue
     pub issue: String,
@@ -24,19 +25,26 @@ pub struct Check {
 
     /// The symbol related to the issue
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "proptest", proptest(value = "None"))]
     pub symbol: Option<Symbol>,
 
     /// Process IDs involved in the issue
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
-    pub pids: Vec<u32>,
+    pub pids: Vec<u64>,
 
     /// Paths involved in the issue
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub paths: Vec<String>,
+
+    /// Export path
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub exported_path: Option<String>,
 }
 
 /// Information about a hooked function
-#[derive(Debug, PartialEq, Eq, Serialize, Clone, Default, JsonSchema, Deserialize)]
+#[cfg_attr(feature = "proptest", derive(proptest_derive::Arbitrary))]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[derive(Debug, PartialEq, Eq, Serialize, Clone, Default, Deserialize)]
 pub struct Hook {
     /// Address of the hooked function
     pub addr: VirtualAddress,
@@ -57,5 +65,6 @@ pub struct Hook {
 
     /// symbol name for the destination for the hooked function if known
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "proptest", proptest(value = "None"))]
     pub target_module: Option<Symbol>,
 }

@@ -806,7 +806,7 @@ where
             }
 
             let mut values = vec![];
-            for (_, value) in obj.iter_mut() {
+            for (_, value) in &mut *obj {
                 if value.is_object() || value.is_array() {
                     *value = serde_json::Value::String(serde_json::to_string(value)?);
                 }
