@@ -7,7 +7,6 @@ use crate::{ImageId, OwnerId, Secret};
 use clap::ValueEnum;
 use getrandom::getrandom;
 use hmac::{Hmac, Mac};
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use sha2::Sha512;
 use std::{
@@ -56,7 +55,8 @@ impl FromStr for WebhookId {
 }
 
 /// Unique identifier for a `WebhookEvent` entry
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, Eq, PartialEq, JsonSchema)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, Eq, PartialEq)]
 pub struct WebhookEventId(Uuid);
 
 impl WebhookEventId {
@@ -88,9 +88,8 @@ impl FromStr for WebhookEventId {
 }
 
 /// Webhook Event Types
-#[derive(
-    Debug, Serialize, Deserialize, Clone, ValueEnum, Ord, Eq, PartialEq, PartialOrd, JsonSchema,
-)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[derive(Debug, Serialize, Deserialize, Clone, ValueEnum, Ord, Eq, PartialEq, PartialOrd)]
 #[serde(rename_all = "snake_case")]
 #[value(rename_all = "snake_case")]
 pub enum WebhookEventType {
@@ -113,7 +112,8 @@ pub enum WebhookEventType {
 ///
 /// This struct defines the structure of a webhook event sent to user's
 /// configured HTTP endpoint via HTTP POST.
-#[derive(Debug, Serialize, Deserialize, Clone, JsonSchema)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct WebhookEvent {
     /// Unique identifier for the event
     pub event_id: WebhookEventId,
@@ -123,7 +123,7 @@ pub struct WebhookEvent {
 
     /// Timestamp of when the event occurred
     #[serde(with = "time::serde::rfc3339")]
-    #[schemars(with = "String")]
+    #[cfg_attr(feature = "schema", schemars(with = "String"))]
     pub timestamp: OffsetDateTime,
 
     /// The image that triggered the event, if applicable

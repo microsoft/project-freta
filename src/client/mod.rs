@@ -376,8 +376,8 @@ impl Client {
         let image = self.images_monitor(image_id).await?;
         let Some(image_url) = image.image_url else {
             return Err(Error::InvalidResponse(
-                "service did not provide image_url in the response"
-            ))
+                "service did not provide image_url in the response",
+            ));
         };
         blob_download(&image_url, output).await?;
         Ok(())
@@ -398,7 +398,7 @@ impl Client {
         let Some(image_url) = image.artifacts_url else {
             return Err(Error::InvalidResponse(
                 "missing artifacts_url from the response",
-            ))
+            ));
         };
 
         Ok(image_url)
@@ -648,7 +648,7 @@ impl Client {
     where
         S: Into<Secret>,
     {
-        let hmac_token = hmac_token.map(std::convert::Into::into);
+        let hmac_token = hmac_token.map(Into::into);
 
         let update = WebhookSubmit {
             url,
@@ -726,7 +726,7 @@ impl Client {
     where
         S: Into<Secret>,
     {
-        let hmac_token = hmac_token.map(std::convert::Into::into);
+        let hmac_token = hmac_token.map(Into::into);
 
         let update = WebhookSubmit {
             url,

@@ -1,17 +1,16 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 
-#![deny(clippy::integer_arithmetic)]
+#![deny(clippy::arithmetic_side_effects)]
 
 use core::ops::{Add, AddAssign, Sub, SubAssign};
 use num_traits::{CheckedAdd, CheckedSub, WrappingAdd, WrappingSub};
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Debug, Display, Formatter, Result};
 
 /// Virtual Memory Address
-#[derive(
-    Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, Default, JsonSchema,
-)]
+#[cfg_attr(feature = "proptest", derive(proptest_derive::Arbitrary))]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, Default)]
 pub struct VirtualAddress(pub u64);
 
 impl VirtualAddress {
@@ -153,14 +152,14 @@ impl From<VirtualAddress> for u64 {
 
 impl Display for VirtualAddress {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "0x{:x}", self.0)
+        write!(f, "{:#x}", self.0)
     }
 }
 
 // Custom debug to print address in hex
 impl Debug for VirtualAddress {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "VirtualAddress(0x{:x})", self.0)
+        write!(f, "VirtualAddress({:#x})", self.0)
     }
 }
 

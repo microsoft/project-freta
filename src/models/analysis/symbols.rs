@@ -1,10 +1,11 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 /// Symbol representation
-#[derive(Debug, Serialize, JsonSchema, Clone, Eq, PartialEq, Deserialize)]
+#[cfg_attr(feature = "proptest", derive(proptest_derive::Arbitrary))]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[derive(Debug, Serialize, Clone, Eq, PartialEq, Deserialize)]
 pub enum Symbol {
     /// Kernel symbol name
     Kernel(String),

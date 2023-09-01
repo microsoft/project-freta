@@ -1,7 +1,6 @@
 // Copyright (C) Microsoft Corporation. All rights reserved.
 
 use clap::ValueEnum;
-use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::{
     collections::BTreeMap,
@@ -14,7 +13,8 @@ use url::Url;
 use uuid::Uuid;
 
 /// Unique identifier for an `Image`
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, Eq, PartialEq, JsonSchema)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, Eq, PartialEq)]
 pub struct ImageId(Uuid);
 
 impl ImageId {
