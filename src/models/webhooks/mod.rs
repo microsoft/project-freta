@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use sha2::Sha512;
 use std::{
     collections::BTreeSet,
-    fmt::{Display, Error as FmtError, Formatter},
+    fmt::{Display, Error as FmtError, Formatter, Write},
     str::FromStr,
     time::SystemTime,
 };
@@ -180,10 +180,10 @@ pub fn hmac_sha512(bytes: &[u8], hmac_token: &Secret) -> Result<String, HmacErro
         .map_err(|_| HmacError::InvalidHmacToken)?;
     mac.update(bytes);
     let result = mac.finalize().into_bytes();
-    let hmac_as_string = result
-        .iter()
-        .map(|b| format!("{b:02x}"))
-        .collect::<String>();
+    let hmac_as_string = result.iter().fold(String::new(), |mut output, b| {
+        let _ = write!(output, "{b:02x}");
+        output
+    });
     Ok(hmac_as_string)
 }
 
